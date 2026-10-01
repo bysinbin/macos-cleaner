@@ -271,49 +271,140 @@ body {
   gap: 16px;
 }
 
-/* Toggles & Sliders */
+/* ========================================================
+   Toggles & Switches
+   ======================================================== */
 .toggle-control {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   font-size: 0.82rem;
   color: var(--text-muted);
   cursor: pointer;
   user-select: none;
 }
 
-.toggle-control input {
-  display: none;
+.toggle-control:hover {
+  color: var(--text-normal);
 }
 
-.toggle-slider {
+.toggle-control input,
+.toggle-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Standalone Toggle Switch (Startup & Extensions) */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 24px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* Toggle Slider Track - toggle-control */
+.toggle-control .toggle-slider {
+  position: relative;
+  display: inline-block;
   width: 38px;
   height: 20px;
-  background: rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.14);
   border-radius: 999px;
-  position: relative;
-  transition: background var(--transition-fast);
+  border: 1px solid var(--border-subtle);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  vertical-align: middle;
+  cursor: pointer;
 }
 
-.toggle-slider::after {
+/* Toggle Slider Track - toggle-switch */
+.toggle-switch .toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+/* Ensure no second circle / pseudo-element collision */
+.toggle-slider::before,
+.toggle-slider:before {
+  content: none !important;
+  display: none !important;
+}
+
+/* Knob - toggle-control (Track: 38x20, Knob: 14x14) */
+.toggle-control .toggle-slider::after {
   content: "";
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  background: white;
-  transition: transform var(--transition-fast);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.toggle-control input:checked + .toggle-slider {
+/* Knob - toggle-switch (Track: 42x24, Knob: 18x18) */
+.toggle-switch .toggle-slider::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Checked States */
+.toggle-control input:checked + .toggle-slider,
+.toggle-switch input:checked + .toggle-slider {
   background: var(--accent-indigo);
+  border-color: var(--accent-indigo);
 }
 
 .toggle-control input:checked + .toggle-slider::after {
   transform: translateX(18px);
 }
+
+.toggle-switch input:checked + .toggle-slider::after {
+  transform: translateX(18px);
+}
+
+/* Hover & Focus */
+.toggle-control:hover .toggle-slider,
+.toggle-switch:hover .toggle-slider {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.toggle-control input:focus-visible + .toggle-slider,
+.toggle-switch input:focus-visible + .toggle-slider {
+  outline: 2px solid var(--accent-indigo);
+  outline-offset: 2px;
+}
+
+/* Disabled State */
+.toggle-control input:disabled + .toggle-slider,
+.toggle-switch input:disabled + .toggle-slider {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 
 /* Buttons */
 .btn {
@@ -2480,57 +2571,6 @@ body {
   flex-shrink: 0;
 }
 
-/* Modern Toggle Switch */
-.toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 44px;
-  height: 24px;
-  flex-shrink: 0;
-}
-
-.toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(255, 255, 255, 0.12);
-  transition: all .25s ease;
-  border-radius: 24px;
-  border: 1px solid var(--border-subtle);
-}
-
-.toggle-slider:before {
-  position: absolute;
-  content: "";
-  height: 18px;
-  width: 18px;
-  left: 2px;
-  bottom: 2px;
-  background-color: #fff;
-  transition: all .25s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-
-.toggle-switch input:checked + .toggle-slider {
-  background: var(--accent-indigo);
-  border-color: var(--accent-indigo);
-}
-
-.toggle-switch input:checked + .toggle-slider:before {
-  transform: translateX(20px);
-}
-
-.toggle-switch input:disabled + .toggle-slider {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
 
 /* Privacy & Network Specific Styles */
 .privacy-item-row {
