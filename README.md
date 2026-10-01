@@ -83,6 +83,11 @@ Go ile geliştirilmiş, macOS için modern, yüksek performanslı ve görsel dis
     - **Şifre Korumalı Giriş (`config.json`)**: Uygulamaya girişte parola koruması sağlanır; güvenli oturum tokenı (`dc_token`, HttpOnly) ile korunur.
     - **Test (Dry Run) & Çöp Kutusu Modları**: Dosyaları kalıcı silmek yerine Finder Çöp Kutusuna taşıma veya sadece test çalıştırma opsiyonu.
     - **Kritik Sistem Dizin Koruması**: Sistem kök dizinleri (`/System`, `/usr`, `/Library`, `/Applications`, `~/.ssh`) otomatik koruma altındadır.
+20. **🚀 Başlangıç Öğeleri & Arka Plan Hizmetleri Yöneticisi (CleanMyMac Optimization Tarzı)**:
+    - **Kullanıcı Oturum Açma Öğeleri (Login Items)**: Mac açıldığında otomatik başlayan uygulamaları listeleme, gizli başlatma, listeden kaldırma ve yeni `.app` ekleme.
+    - **Kullanıcı Başlatma Ajanları (User LaunchAgents — `~/Library/LaunchAgents`)**: Oturumla başlayan arka plan ajanlarını modern Aç/Kapa (Toggle) anahtarlarıyla anında etkinleştirme veya devre dışı bırakma.
+    - **Sistem Ajanları & Daemons (`/Library/LaunchAgents` ve `/Library/LaunchDaemons`)**: Adobe, Google, Microsoft, Steam gibi servisleri ve çalışan aktif PID numaralarını görme, yönetme ve filtreleme.
+    - **Finder Entegrasyonu & Güvenli Kaldırma**: Servis veya uygulama dosyasını Finder'da gösterme ve güvenle Çöp Kutusuna taşıma.
 
 ---
 

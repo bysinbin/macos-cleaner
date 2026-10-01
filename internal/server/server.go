@@ -208,6 +208,12 @@ func (s *Server) routes() {
 	// Hardware Resource Monitor (Image 3: CPU, RAM, Uptime)
 	s.mux.HandleFunc("/api/monitor", s.handleHardwareMonitor)
 
+	// Startup & Background Items Manager (CleanMyMac Optimization / Login Items)
+	s.mux.HandleFunc("/api/startup", s.handleStartupList)
+	s.mux.HandleFunc("/api/startup/toggle", s.handleStartupToggle)
+	s.mux.HandleFunc("/api/startup/delete", s.handleStartupDelete)
+	s.mux.HandleFunc("/api/startup/add", s.handleStartupAdd)
+
 	// Static UI assets from embedded FS
 	sub, err := fs.Sub(s.embeddedFS, "web")
 	if err != nil {

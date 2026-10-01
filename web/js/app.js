@@ -32,6 +32,9 @@ const state = {
   maintenanceTasks: null,
   monitorData: null,
   authStatus: null,
+  startupData: null,
+  startupFilter: 'all',
+  startupSearch: '',
   isScanning: false,
   isCleaning: false,
 };
@@ -233,6 +236,28 @@ const elements = {
   monOsVer: document.getElementById('mon-os-ver'),
   monUptime: document.getElementById('mon-uptime'),
 
+  // Startup Manager
+  badgeStartupCount: document.getElementById('badge-startup-count'),
+  btnRefreshStartup: document.getElementById('btn-refresh-startup'),
+  btnAddLoginItemModal: document.getElementById('btn-add-login-item-modal'),
+  startupStatTotal: document.getElementById('startup-stat-total'),
+  startupStatActive: document.getElementById('startup-stat-active'),
+  startupStatRunning: document.getElementById('startup-stat-running'),
+  startupStatLogin: document.getElementById('startup-stat-login'),
+  startupFilterChips: document.getElementById('startup-filter-chips'),
+  inputStartupSearch: document.getElementById('input-startup-search'),
+  startupItemsList: document.getElementById('startup-items-list'),
+  addLoginItemDialog: document.getElementById('add-login-item-dialog'),
+  formAddLoginItem: document.getElementById('form-add-login-item'),
+  inputNewLoginPath: document.getElementById('input-new-login-path'),
+  checkNewLoginHidden: document.getElementById('check-new-login-hidden'),
+  btnCancelAddLogin: document.getElementById('btn-cancel-add-login'),
+  chipCountAll: document.getElementById('chip-count-all'),
+  chipCountLogin: document.getElementById('chip-count-login'),
+  chipCountUser: document.getElementById('chip-count-user'),
+  chipCountSysAgent: document.getElementById('chip-count-sysagent'),
+  chipCountDaemon: document.getElementById('chip-count-daemon'),
+
   // Toast
   toastContainer: document.getElementById('toast-container'),
 };
@@ -255,6 +280,7 @@ const TAB_CONFIG = {
   maintenance: { title: 'Sistem Bakımı & Hızlandırma', sub: 'macOS bellek boşaltma, DNS ve sistem önbelleği onarımı' },
   shredder: { title: 'Güvenli Dosya Öğütücü', sub: 'Kurtarılamaz çoklu geçişli (DoD 5220.22-M) kalıcı dosya imhası' },
   monitor: { title: 'Donanım & Kaynak Monitörü', sub: 'İşlemci, Bellek (RAM) ve sistem çalışma sürelerinin canlı görünümü' },
+  startup: { title: 'Başlangıç Öğeleri & Arka Plan Hizmetleri', sub: 'Oturum açma uygulamaları, LaunchAgent ve arka plan servislerini yönetin' },
 };
 
 let monitorInterval = null;
@@ -268,6 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
   startGlobalScan();
   startLeftoversScan(true); // background initial scan for badge
   loadSmartCare(); // Initial smart care health scan
+  loadStartupItems(true); // background initial scan for startup badge
 });
 
 // Setup Tab Navigation
@@ -334,6 +361,9 @@ function switchTab(tabName) {
   }
   if (tabName === 'maintenance') {
     loadMaintenanceTasks();
+  }
+  if (tabName === 'startup' && !state.startupData) {
+    loadStartupItems();
   }
   if (tabName === 'monitor') {
     loadHardwareMonitor();
@@ -2620,8 +2650,281 @@ async function loadHardwareMonitor() {
   }
 }
 
+// ==========================================================================
+// Startup & Background Items Manager
+// ==========================================================================
+async function loadStartupItems(isSilent = false) {
+  if (!isSilent && elements.startupItemsList) {
+    elements.startupItemsList.innerHTML = '<div class="loading-state">Başlangıç öğeleri ve arka plan servisleri taranıyor...</div>';
+  }
+
+  try {
+    const res = await fetch('/api/startup');
+    if (!res.ok) throw new Error('Başlangıç öğeleri listelenemedi');
+    const data = await res.json();
+    state.startupData = data;
+
+    // Update badges and counters
+    if (elements.badgeStartupCount) {
+      elements.badgeStartupCount.textContent = data.activeCount || data.totalCount || 0;
+      elements.badgeStartupCount.style.display = data.totalCount > 0 ? 'inline-block' : 'none';
+    }
+
+    if (elements.startupStatTotal) elements.startupStatTotal.textContent = data.totalCount || 0;
+    if (elements.startupStatActive) elements.startupStatActive.textContent = data.activeCount || 0;
+    if (elements.startupStatRunning) elements.startupStatRunning.textContent = data.runningCount || 0;
+    if (elements.startupStatLogin) elements.startupStatLogin.textContent = data.loginItemsCount || 0;
+
+    if (elements.chipCountAll) elements.chipCountAll.textContent = data.totalCount || 0;
+    if (elements.chipCountLogin) elements.chipCountLogin.textContent = data.loginItemsCount || 0;
+    if (elements.chipCountUser) elements.chipCountUser.textContent = data.userAgentsCount || 0;
+    if (elements.chipCountSysAgent) elements.chipCountSysAgent.textContent = data.systemAgentsCount || 0;
+    if (elements.chipCountDaemon) elements.chipCountDaemon.textContent = data.daemonsCount || 0;
+
+    renderStartupItems();
+  } catch (err) {
+    console.error('Startup items error:', err);
+    if (!isSilent && elements.startupItemsList) {
+      elements.startupItemsList.innerHTML = `<div class="empty-state">Hata: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+}
+
+function renderStartupItems() {
+  if (!elements.startupItemsList || !state.startupData) return;
+
+  let items = state.startupData.items || [];
+
+  // Filter by category
+  if (state.startupFilter !== 'all') {
+    items = items.filter(item => item.type === state.startupFilter);
+  }
+
+  // Filter by search query
+  if (state.startupSearch) {
+    const q = state.startupSearch.toLowerCase();
+    items = items.filter(item =>
+      (item.name && item.name.toLowerCase().includes(q)) ||
+      (item.label && item.label.toLowerCase().includes(q)) ||
+      (item.vendor && item.vendor.toLowerCase().includes(q)) ||
+      (item.program && item.program.toLowerCase().includes(q)) ||
+      (item.path && item.path.toLowerCase().includes(q))
+    );
+  }
+
+  if (items.length === 0) {
+    elements.startupItemsList.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <p>Seçili filtre veya aramaya uygun başlangıç öğesi bulunamadı.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const typeConfig = {
+    login_item: { iconCls: 'type-login', tagCls: 's-tag-login', typeName: 'Oturum Açma' },
+    user_agent: { iconCls: 'type-user', tagCls: 's-tag-user', typeName: 'Kullanıcı Ajanı' },
+    system_agent: { iconCls: 'type-sysagent', tagCls: 's-tag-sysagent', typeName: 'Sistem Ajanı' },
+    system_daemon: { iconCls: 'type-daemon', tagCls: 's-tag-daemon', typeName: 'Arka Plan Servisi' },
+  };
+
+  elements.startupItemsList.innerHTML = items.map(item => {
+    const cfg = typeConfig[item.type] || { iconCls: 'type-user', tagCls: 's-tag-user', typeName: item.typeName };
+    const disabledClass = !item.enabled ? 'is-disabled' : '';
+
+    let runningBadge = '';
+    if (item.running) {
+      runningBadge = `<span class="s-tag s-tag-running">Çalışıyor ${item.pid > 0 ? `(PID: ${item.pid})` : ''}</span>`;
+    }
+
+    let statusTag = '';
+    if (!item.enabled) {
+      statusTag = `<span class="s-tag" style="background:rgba(244,63,94,0.15);color:var(--accent-rose);">Devre Dışı</span>`;
+    }
+
+    const pathToShow = item.path || item.program || '';
+
+    return `
+      <div class="glass-card startup-item-card ${disabledClass}" id="scard-${escapeHtml(item.id)}">
+        <div class="s-item-left">
+          <div class="s-item-icon ${cfg.iconCls}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/></svg>
+          </div>
+          <div class="s-item-details">
+            <div class="s-item-title-row">
+              <h4 title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</h4>
+              <span class="s-tag ${cfg.tagCls}">${cfg.typeName}</span>
+              ${item.vendor ? `<span class="s-tag s-tag-vendor">${escapeHtml(item.vendor)}</span>` : ''}
+              ${runningBadge}
+              ${statusTag}
+            </div>
+            <div class="s-item-meta">
+              <span class="s-item-path" title="${escapeHtml(pathToShow)}">${escapeHtml(pathToShow)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="s-item-right">
+          <!-- Toggle Switch -->
+          <label class="toggle-switch" title="${item.enabled ? 'Devre Dışı Bırak' : 'Etkinleştir'}">
+            <input type="checkbox" class="toggle-startup-switch" data-id="${escapeHtml(item.id)}" ${item.enabled ? 'checked' : ''} />
+            <span class="toggle-slider"></span>
+          </label>
+
+          <!-- Finder Reveal -->
+          ${item.path ? `
+            <button class="btn btn-secondary btn-icon-only btn-reveal-startup" data-path="${escapeHtml(item.path)}" title="Finder'da Göster">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+            </button>
+          ` : ''}
+
+          <!-- Delete / Remove Button -->
+          <button class="btn btn-secondary btn-icon-only btn-delete-startup" data-id="${escapeHtml(item.id)}" data-name="${escapeHtml(item.name)}" title="Başlangıçtan Kaldır">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Attach event handlers
+  elements.startupItemsList.querySelectorAll('.toggle-startup-switch').forEach(sw => {
+    sw.addEventListener('change', (e) => {
+      const id = sw.dataset.id;
+      const enable = sw.checked;
+      toggleStartupItem(id, enable);
+    });
+  });
+
+  elements.startupItemsList.querySelectorAll('.btn-reveal-startup').forEach(btn => {
+    btn.addEventListener('click', () => {
+      revealInFinder(btn.dataset.path);
+    });
+  });
+
+  elements.startupItemsList.querySelectorAll('.btn-delete-startup').forEach(btn => {
+    btn.addEventListener('click', () => {
+      deleteStartupItem(btn.dataset.id, btn.dataset.name);
+    });
+  });
+}
+
+async function toggleStartupItem(id, enabled) {
+  try {
+    const res = await fetch('/api/startup/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: id, enabled: enabled })
+    });
+    const result = await res.json();
+    if (res.ok && result.success) {
+      showToast(result.message || 'Öğe durumu güncellendi.', 'success');
+      loadStartupItems(true);
+    } else {
+      showToast('İşlem başarısız: ' + (result.error || 'Bilinmeyen hata'), 'error');
+      renderStartupItems(); // revert toggle visually
+    }
+  } catch (err) {
+    showToast('Bağlantı hatası: ' + err.message, 'error');
+    renderStartupItems();
+  }
+}
+
+async function deleteStartupItem(id, name) {
+  if (!confirm(`"${name}" başlangıç öğesi listeden kaldırılacaktır. Onaylıyor musunuz?`)) return;
+
+  try {
+    const res = await fetch('/api/startup/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: id, useTrash: true })
+    });
+    const result = await res.json();
+    if (res.ok && result.success) {
+      showToast(`"${name}" başarıyla kaldırıldı.`, 'success');
+      loadStartupItems(true);
+    } else {
+      showToast('Kaldırma hatası: ' + (result.error || 'Başarısız'), 'error');
+    }
+  } catch (err) {
+    showToast('Hata: ' + err.message, 'error');
+  }
+}
+
+async function handleAddLoginItemSubmit() {
+  const path = elements.inputNewLoginPath.value.trim();
+  const hidden = elements.checkNewLoginHidden.checked;
+
+  if (!path) {
+    showToast('Lütfen uygulamanın tam yolunu girin.', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/startup/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: path, hidden: hidden })
+    });
+    const result = await res.json();
+    if (res.ok && result.success) {
+      showToast(result.message || 'Yeni başlangıç öğesi eklendi!', 'success');
+      elements.addLoginItemDialog.close();
+      elements.inputNewLoginPath.value = '';
+      elements.checkNewLoginHidden.checked = false;
+      loadStartupItems();
+    } else {
+      showToast('Ekleme hatası: ' + (result.error || 'Başarısız'), 'error');
+    }
+  } catch (err) {
+    showToast('Hata: ' + err.message, 'error');
+  }
+}
+
 // Setup Event Handlers
 function setupEventHandlers() {
+  // Startup Handlers
+  if (elements.btnRefreshStartup) {
+    elements.btnRefreshStartup.addEventListener('click', () => {
+      loadStartupItems();
+      showToast('Başlangıç öğeleri güncellendi', 'info');
+    });
+  }
+
+  if (elements.btnAddLoginItemModal) {
+    elements.btnAddLoginItemModal.addEventListener('click', () => {
+      if (elements.addLoginItemDialog) elements.addLoginItemDialog.showModal();
+    });
+  }
+
+  if (elements.btnCancelAddLogin) {
+    elements.btnCancelAddLogin.addEventListener('click', () => {
+      if (elements.addLoginItemDialog) elements.addLoginItemDialog.close();
+    });
+  }
+
+  if (elements.formAddLoginItem) {
+    elements.formAddLoginItem.addEventListener('submit', () => handleAddLoginItemSubmit());
+  }
+
+  if (elements.startupFilterChips) {
+    elements.startupFilterChips.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        elements.startupFilterChips.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        state.startupFilter = chip.dataset.filter;
+        renderStartupItems();
+      });
+    });
+  }
+
+  if (elements.inputStartupSearch) {
+    elements.inputStartupSearch.addEventListener('input', (e) => {
+      state.startupSearch = e.target.value.trim();
+      renderStartupItems();
+    });
+  }
   // Auth Form Handlers
   if (elements.btnAuthSubmit) {
     elements.btnAuthSubmit.addEventListener('click', () => handleLoginSubmit());
