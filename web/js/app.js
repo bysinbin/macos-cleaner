@@ -236,6 +236,76 @@ const elements = {
   monOsVer: document.getElementById('mon-os-ver'),
   monUptime: document.getElementById('mon-uptime'),
 
+  // Battery Monitor
+  monBatteryCard: document.getElementById('mon-battery-card'),
+  monBattSource: document.getElementById('mon-batt-source'),
+  monBattPct: document.getElementById('mon-batt-pct'),
+  monBattChargingStatus: document.getElementById('mon-batt-charging-status'),
+  monBattHealth: document.getElementById('mon-batt-health'),
+  monBattCycles: document.getElementById('mon-batt-cycles'),
+  monBattTemp: document.getElementById('mon-batt-temp'),
+  monBattCondition: document.getElementById('mon-batt-condition'),
+
+  // GPU Monitor
+  monGpuModel: document.getElementById('mon-gpu-model'),
+  monGpuCores: document.getElementById('mon-gpu-cores'),
+  monGpuMetal: document.getElementById('mon-gpu-metal'),
+  monGpuRes: document.getElementById('mon-gpu-res'),
+  monGpuVendor: document.getElementById('mon-gpu-vendor'),
+
+  // Disk Monitor
+  monDiskType: document.getElementById('mon-disk-type'),
+  monDiskPct: document.getElementById('mon-disk-pct'),
+  monDiskUsed: document.getElementById('mon-disk-used'),
+  monDiskFree: document.getElementById('mon-disk-free'),
+  monDiskSmart: document.getElementById('mon-disk-smart'),
+  monDiskThroughput: document.getElementById('mon-disk-throughput'),
+
+  // Extensions
+  badgeExtensionsCount: document.getElementById('badge-extensions-count'),
+  btnRefreshExtensions: document.getElementById('btn-refresh-extensions'),
+  extStatTotal: document.getElementById('ext-stat-total'),
+  extStatActive: document.getElementById('ext-stat-active'),
+  extStatSysext: document.getElementById('ext-stat-sysext'),
+  extStatAppex: document.getElementById('ext-stat-appex'),
+  extCategoryFilters: document.getElementById('ext-category-filters'),
+  inputSearchExtensions: document.getElementById('input-search-extensions'),
+  extensionsItemsList: document.getElementById('extensions-items-list'),
+  pillExtAll: document.getElementById('pill-ext-all'),
+  pillExtSysext: document.getElementById('pill-ext-sysext'),
+  pillExtPluginkit: document.getElementById('pill-ext-pluginkit'),
+  pillExtQuicklook: document.getElementById('pill-ext-quicklook'),
+  pillExtSpotlight: document.getElementById('pill-ext-spotlight'),
+  pillExtPrefpane: document.getElementById('pill-ext-prefpane'),
+
+  // Network Monitor
+  btnRefreshNetwork: document.getElementById('btn-refresh-network'),
+  netStatStatus: document.getElementById('net-stat-status'),
+  netStatIface: document.getElementById('net-stat-iface'),
+  netStatIp: document.getElementById('net-stat-ip'),
+  netStatGw: document.getElementById('net-stat-gw'),
+  netStatSpeedIn: document.getElementById('net-stat-speed-in'),
+  netStatTotalIn: document.getElementById('net-stat-total-in'),
+  netStatSpeedOut: document.getElementById('net-stat-speed-out'),
+  netStatTotalOut: document.getElementById('net-stat-total-out'),
+  netDetailMac: document.getElementById('net-detail-mac'),
+  netDetailDns: document.getElementById('net-detail-dns'),
+  netDetailConnCount: document.getElementById('net-detail-conn-count'),
+  netConnBadge: document.getElementById('net-conn-badge'),
+  netConnectionsTbody: document.getElementById('net-connections-tbody'),
+
+  // Privacy Protection
+  badgePrivacyCount: document.getElementById('badge-privacy-count'),
+  btnRefreshPrivacy: document.getElementById('btn-refresh-privacy'),
+  btnCleanPrivacy: document.getElementById('btn-clean-privacy'),
+  privStatTotal: document.getElementById('priv-stat-total'),
+  privStatSize: document.getElementById('priv-stat-size'),
+  privStatHistory: document.getElementById('priv-stat-history'),
+  privStatBrowser: document.getElementById('priv-stat-browser'),
+  checkAllPrivacy: document.getElementById('check-all-privacy'),
+  privacyItemsList: document.getElementById('privacy-items-list'),
+  privacyPermissionsList: document.getElementById('privacy-permissions-list'),
+
   // Startup Manager
   badgeStartupCount: document.getElementById('badge-startup-count'),
   btnRefreshStartup: document.getElementById('btn-refresh-startup'),
@@ -279,11 +349,19 @@ const TAB_CONFIG = {
   media: { title: 'İletişim & Mesaj Ekleri', sub: 'iMessage ve Apple Mail ile gelen video, fotoğraf, ses ve belge ekleri' },
   maintenance: { title: 'Sistem Bakımı & Hızlandırma', sub: 'macOS bellek boşaltma, DNS ve sistem önbelleği onarımı' },
   shredder: { title: 'Güvenli Dosya Öğütücü', sub: 'Kurtarılamaz çoklu geçişli (DoD 5220.22-M) kalıcı dosya imhası' },
-  monitor: { title: 'Donanım & Kaynak Monitörü', sub: 'İşlemci, Bellek (RAM) ve sistem çalışma sürelerinin canlı görünümü' },
+  monitor: { title: 'Donanım & Kaynak Monitörü', sub: 'İşlemci, Bellek (RAM), Pil, GPU ve Disk durumunun canlı görünümü' },
   startup: { title: 'Başlangıç Öğeleri & Arka Plan Hizmetleri', sub: 'Oturum açma uygulamaları, LaunchAgent ve arka plan servislerini yönetin' },
+  extensions: { title: 'macOS Eklenti Yöneticisi (Extensions)', sub: 'Sistem sürücüleri, ağ filtreleri, Finder ve uygulama eklentilerini yönetin' },
+  network: { title: 'Ağ & Bağlantı Monitörü (Network)', sub: 'Gerçek zamanlı ağ trafiği, indirme/yükleme hızları ve aktif TCP bağlantıları' },
+  privacy: { title: 'macOS Gizlilik Koruması & İz Temizleyici', sub: 'Son açılan dosyalar, Terminal komut geçmişleri, tarayıcı izleri ve TCC izinleri' },
 };
 
 let monitorInterval = null;
+let networkInterval = null;
+let extensionsData = null;
+let extCurrentFilter = 'all';
+let extSearchQuery = '';
+let privacyData = null;
 
 // Global fetch wrapper to handle session expiration (401)
 const _originalFetch = window.fetch;
@@ -308,6 +386,8 @@ function initializeDashboardData() {
   startLeftoversScan(true); // background initial scan for badge
   loadSmartCare(); // Initial smart care health scan
   loadStartupItems(true); // background initial scan for startup badge
+  loadExtensions(true); // background initial scan for extensions badge
+  loadPrivacyTraces(true); // background initial scan for privacy badge
 }
 
 // Initialize Application
@@ -388,6 +468,20 @@ function switchTab(tabName) {
   }
   if (tabName === 'startup' && !state.startupData) {
     loadStartupItems();
+  }
+  if (tabName === 'extensions') {
+    loadExtensions();
+  }
+  if (tabName === 'network') {
+    loadNetworkStats();
+    if (networkInterval) clearInterval(networkInterval);
+    networkInterval = setInterval(loadNetworkStats, 3000);
+  } else if (networkInterval) {
+    clearInterval(networkInterval);
+    networkInterval = null;
+  }
+  if (tabName === 'privacy') {
+    loadPrivacyTraces();
   }
   if (tabName === 'monitor') {
     loadHardwareMonitor();
@@ -2671,6 +2765,53 @@ async function loadHardwareMonitor() {
     if (elements.monHostname) elements.monHostname.textContent = hostname;
     if (elements.monOsVer) elements.monOsVer.textContent = osVer;
     if (elements.monUptime) elements.monUptime.textContent = uptime;
+
+    // Battery Info
+    const batt = data.battery;
+    if (batt && batt.hasBattery) {
+      if (elements.monBatteryCard) elements.monBatteryCard.style.display = 'block';
+      if (elements.monBattPct) elements.monBattPct.textContent = `${batt.percentage}%`;
+      if (elements.monBattChargingStatus) {
+        elements.monBattChargingStatus.textContent = batt.isCharging ? (batt.fullyCharged ? 'Tam Dolu' : 'Şarj Ediliyor') : (batt.remainingTime || 'Pilden Çalışıyor');
+      }
+      if (elements.monBattSource) elements.monBattSource.textContent = batt.powerSource || 'Şebeke Gücü (AC)';
+      if (elements.monBattHealth) elements.monBattHealth.textContent = `${batt.healthPercent}%`;
+      if (elements.monBattCycles) elements.monBattCycles.textContent = `${batt.cycleCount}`;
+      if (elements.monBattTemp) elements.monBattTemp.textContent = `${batt.temperatureCelsius ? batt.temperatureCelsius.toFixed(1) : '--'} °C`;
+      if (elements.monBattCondition) {
+        elements.monBattCondition.textContent = batt.condition || 'Normal';
+        elements.monBattCondition.style.color = batt.condition && batt.condition.includes('Servis') ? 'var(--accent-rose)' : 'var(--accent-emerald)';
+      }
+    } else if (elements.monBatteryCard) {
+      if (elements.monBattPct) elements.monBattPct.textContent = 'Masaüstü';
+      if (elements.monBattChargingStatus) elements.monBattChargingStatus.textContent = 'Harici Güç';
+      if (elements.monBattSource) elements.monBattSource.textContent = 'Masaüstü Mac Gücü';
+      if (elements.monBattHealth) elements.monBattHealth.textContent = 'N/A';
+      if (elements.monBattCycles) elements.monBattCycles.textContent = 'N/A';
+      if (elements.monBattTemp) elements.monBattTemp.textContent = '--';
+      if (elements.monBattCondition) elements.monBattCondition.textContent = 'Normal';
+    }
+
+    // GPU Info
+    const gpu = data.gpu;
+    if (gpu) {
+      if (elements.monGpuModel) elements.monGpuModel.textContent = gpu.model || 'Apple Silicon GPU';
+      if (elements.monGpuCores) elements.monGpuCores.textContent = `${gpu.cores || 8}`;
+      if (elements.monGpuMetal) elements.monGpuMetal.textContent = gpu.metalSupport || 'Metal Destekli';
+      if (elements.monGpuRes) elements.monGpuRes.textContent = gpu.displayResolution || 'Retina Ekran';
+      if (elements.monGpuVendor) elements.monGpuVendor.textContent = gpu.vendor || 'Apple';
+    }
+
+    // Disk Detail Info
+    const disk = data.diskDetail || data.disk;
+    if (disk) {
+      if (elements.monDiskPct) elements.monDiskPct.textContent = `${Math.round(disk.usedPercent || 0)}%`;
+      if (elements.monDiskUsed) elements.monDiskUsed.textContent = disk.usedStr || '--';
+      if (elements.monDiskFree) elements.monDiskFree.textContent = disk.freeStr || '--';
+      if (elements.monDiskSmart) elements.monDiskSmart.textContent = disk.smartStatus || 'Doğrulandı';
+      if (elements.monDiskThroughput) elements.monDiskThroughput.textContent = disk.throughput || '0 MB/s';
+      if (elements.monDiskType) elements.monDiskType.textContent = `${disk.solidState ? 'NVMe SSD' : 'Depolama'} (${disk.fileSystem || 'APFS'})`;
+    }
   } catch (err) {
     console.error('Hardware monitor fetch error:', err);
   }
@@ -2908,8 +3049,465 @@ async function handleAddLoginItemSubmit() {
   }
 }
 
+// ==========================================================================
+// Extensions Manager
+// ==========================================================================
+async function loadExtensions(isSilent = false) {
+  if (!isSilent && elements.extensionsItemsList) {
+    elements.extensionsItemsList.innerHTML = '<div class="loading-state">Eklentiler taranıyor...</div>';
+  }
+
+  try {
+    const res = await fetch('/api/extensions');
+    if (!res.ok) throw new Error('Eklentiler alınamadı');
+    const data = await res.json();
+    extensionsData = data;
+
+    // Update badge & stats
+    if (elements.badgeExtensionsCount) elements.badgeExtensionsCount.textContent = data.totalCount;
+    if (elements.extStatTotal) elements.extStatTotal.textContent = data.totalCount;
+    if (elements.extStatActive) elements.extStatActive.textContent = data.activeCount;
+    if (elements.extStatSysext) elements.extStatSysext.textContent = data.systemExtCount;
+    if (elements.extStatAppex) elements.extStatAppex.textContent = data.pluginKitCount;
+
+    // Filter pill counts
+    if (elements.pillExtAll) elements.pillExtAll.textContent = data.totalCount;
+    if (elements.pillExtSysext) elements.pillExtSysext.textContent = data.systemExtCount;
+    if (elements.pillExtPluginkit) elements.pillExtPluginkit.textContent = data.pluginKitCount;
+    if (elements.pillExtQuicklook) elements.pillExtQuicklook.textContent = data.quickLookCount;
+    if (elements.pillExtSpotlight) elements.pillExtSpotlight.textContent = data.spotlightCount;
+    if (elements.pillExtPrefpane) elements.pillExtPrefpane.textContent = data.prefPaneCount;
+
+    renderExtensionsList();
+  } catch (err) {
+    console.error('Extensions scan error:', err);
+    if (elements.extensionsItemsList) {
+      elements.extensionsItemsList.innerHTML = `<div class="error-state">Hata: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+}
+
+function renderExtensionsList() {
+  if (!elements.extensionsItemsList || !extensionsData) return;
+
+  let items = extensionsData.items || [];
+
+  // Filter by category
+  if (extCurrentFilter !== 'all') {
+    switch (extCurrentFilter) {
+      case 'sysext':
+        items = items.filter(it => it.type === 'system_ext');
+        break;
+      case 'pluginkit':
+        items = items.filter(it => it.type === 'pluginkit');
+        break;
+      case 'quicklook':
+        items = items.filter(it => it.type === 'quicklook');
+        break;
+      case 'spotlight':
+        items = items.filter(it => it.type === 'spotlight');
+        break;
+      case 'prefpane':
+        items = items.filter(it => it.type === 'prefpane');
+        break;
+    }
+  }
+
+  // Filter by search query
+  if (extSearchQuery) {
+    const q = extSearchQuery.toLowerCase();
+    items = items.filter(it =>
+      (it.name && it.name.toLowerCase().includes(q)) ||
+      (it.bundleId && it.bundleId.toLowerCase().includes(q)) ||
+      (it.vendor && it.vendor.toLowerCase().includes(q)) ||
+      (it.description && it.description.toLowerCase().includes(q))
+    );
+  }
+
+  if (items.length === 0) {
+    elements.extensionsItemsList.innerHTML = `
+      <div class="empty-state" style="padding: 40px; text-align: center; color: var(--text-muted);">
+        <p>Arama kriterine uygun eklenti bulunamadı.</p>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  items.forEach(it => {
+    let tagClass = 's-tag-pluginkit';
+    let typeName = it.typeName || 'Eklenti';
+    if (it.type === 'system_ext') tagClass = 's-tag-sysext';
+    else if (it.type === 'quicklook') tagClass = 's-tag-quicklook';
+    else if (it.type === 'spotlight') tagClass = 's-tag-spotlight';
+    else if (it.type === 'prefpane') tagClass = 's-tag-prefpane';
+
+    const isSystemExt = it.type === 'system_ext';
+
+    html += `
+      <div class="startup-item-card glass-card">
+        <div class="s-item-left">
+          <div class="s-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 6.087c0-.355.186-.676.401-.959A3.75 3.75 0 0010.5 2.25c-1.28 0-2.417.643-3.109 1.628-.215.283-.401.604-.401.959v2.163H4.5A2.25 2.25 0 002.25 9.25v2.25h2.163c.355 0 .676.186.959.401.985.692 1.628 1.829 1.628 3.109 0 1.28-.643 2.417-1.628 3.109-.283.215-.604.401-.959.401H2.25v2.25A2.25 2.25 0 004.5 22.5h2.25v-2.163c0-.355.186-.676.401-.959a3.75 3.75 0 016.218 0c.215.283.401.604.401.959V22.5h2.25a2.25 2.25 0 002.25-2.25v-2.25h-2.163c-.355 0-.676-.186-.959-.401a3.75 3.75 0 010-6.218c.283-.215.604-.401.959-.401H21.75V9.25A2.25 2.25 0 0019.5 7h-2.25V4.837z"/>
+            </svg>
+          </div>
+          <div class="s-item-details">
+            <div class="s-item-title-row">
+              <h4>${escapeHtml(it.name || it.bundleId)}</h4>
+              <span class="s-tag ${tagClass}">${escapeHtml(typeName)}</span>
+              ${it.vendor ? `<span class="s-tag s-tag-vendor">${escapeHtml(it.vendor)}</span>` : ''}
+              ${it.version ? `<span class="s-tag s-tag-vendor">v${escapeHtml(it.version)}</span>` : ''}
+              ${it.active ? `<span class="s-tag s-tag-running">Kullanımda</span>` : ''}
+            </div>
+            <div class="s-item-meta">
+              <span class="s-item-path" title="${escapeHtml(it.path || it.bundleId)}">${escapeHtml(it.path || it.bundleId)}</span>
+              <span style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(it.description || '')}</span>
+            </div>
+          </div>
+        </div>
+        <div class="s-item-right">
+          ${it.path ? `
+            <button class="btn btn-secondary btn-xs btn-reveal-ext" data-path="${escapeHtml(it.path)}" title="Finder'da Göster">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px; height:12px;"><path d="M15 3h6v6M10 14L21 3M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/></svg>
+              <span>Bul</span>
+            </button>
+          ` : ''}
+          ${!isSystemExt ? `
+            <label class="toggle-switch" title="${it.enabled ? 'Devre Dışı Bırak' : 'Etkinleştir'}">
+              <input type="checkbox" class="check-toggle-ext" data-id="${escapeHtml(it.id)}" ${it.enabled ? 'checked' : ''} />
+              <span class="toggle-slider"></span>
+            </label>
+          ` : `
+            <span style="font-size: 0.72rem; color: var(--text-dim); background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 6px;">macOS Korumalı</span>
+          `}
+        </div>
+      </div>
+    `;
+  });
+
+  elements.extensionsItemsList.innerHTML = html;
+
+  // Wire toggles
+  elements.extensionsItemsList.querySelectorAll('.check-toggle-ext').forEach(chk => {
+    chk.addEventListener('change', (e) => {
+      const id = e.target.dataset.id;
+      const enabled = e.target.checked;
+      toggleExtension(id, enabled);
+    });
+  });
+
+  // Wire reveal
+  elements.extensionsItemsList.querySelectorAll('.btn-reveal-ext').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = btn.dataset.path;
+      if (p) revealInFinder(p);
+    });
+  });
+}
+
+async function toggleExtension(id, enabled) {
+  try {
+    const res = await fetch('/api/extensions/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: id, enabled: enabled })
+    });
+    const result = await res.json();
+    if (res.ok && result.success) {
+      showToast(result.message || 'Eklenti durumu güncellendi.', 'success');
+      loadExtensions(true);
+    } else {
+      showToast('İşlem başarısız: ' + (result.error || 'Bilinmeyen hata'), 'error');
+      renderExtensionsList();
+    }
+  } catch (err) {
+    showToast('Bağlantı hatası: ' + err.message, 'error');
+    renderExtensionsList();
+  }
+}
+
+// ==========================================================================
+// Network Monitor
+// ==========================================================================
+async function loadNetworkStats(isSilent = false) {
+  try {
+    const res = await fetch('/api/network');
+    if (!res.ok) return;
+    const stats = await res.json();
+    renderNetworkStats(stats);
+  } catch (err) {
+    console.error('Network stats error:', err);
+  }
+}
+
+function renderNetworkStats(stats) {
+  if (!stats) return;
+
+  if (elements.netStatStatus) elements.netStatStatus.textContent = stats.status || 'Bağlı';
+  if (elements.netStatIface) elements.netStatIface.textContent = stats.interfaceName || 'en0';
+  if (elements.netStatIp) elements.netStatIp.textContent = stats.ipv4Address || 'Bilinmiyor';
+  if (elements.netStatGw) elements.netStatGw.textContent = `Ağ Geçidi: ${stats.gateway || '--'}`;
+  if (elements.netStatSpeedIn) elements.netStatSpeedIn.textContent = stats.downloadSpeedStr || '0 KB/s';
+  if (elements.netStatTotalIn) elements.netStatTotalIn.textContent = `Toplam Gelen: ${stats.bytesInFormatted || '0 B'}`;
+  if (elements.netStatSpeedOut) elements.netStatSpeedOut.textContent = stats.uploadSpeedStr || '0 KB/s';
+  if (elements.netStatTotalOut) elements.netStatTotalOut.textContent = `Toplam Giden: ${stats.bytesOutFormatted || '0 B'}`;
+
+  if (elements.netDetailMac) elements.netDetailMac.textContent = stats.macAddress || '--';
+  if (elements.netDetailDns) elements.netDetailDns.textContent = (stats.dns && stats.dns.length > 0) ? stats.dns.join(', ') : '--';
+  if (elements.netDetailConnCount) elements.netDetailConnCount.textContent = stats.connectionCount || 0;
+  if (elements.netConnBadge) elements.netConnBadge.textContent = `${stats.connectionCount || 0} Aktif Soket`;
+
+  if (!elements.netConnectionsTbody) return;
+
+  const conns = stats.activeConnections || [];
+  if (conns.length === 0) {
+    elements.netConnectionsTbody.innerHTML = `<tr><td colspan="7" class="empty-state">Aktif TCP bağlantısı bulunamadı.</td></tr>`;
+    return;
+  }
+
+  let html = '';
+  conns.forEach(c => {
+    html += `
+      <tr>
+        <td><strong>${escapeHtml(c.command)}</strong></td>
+        <td><code>${c.pid}</code></td>
+        <td>${escapeHtml(c.user)}</td>
+        <td>${escapeHtml(c.protocol)}</td>
+        <td><code style="font-size:0.75rem;">${escapeHtml(c.localAddr)}</code></td>
+        <td><code style="font-size:0.75rem; color:var(--accent-cyan);">${escapeHtml(c.foreignAddr)}</code></td>
+        <td><span class="socket-state-pill">${escapeHtml(c.state || 'ESTABLISHED')}</span></td>
+      </tr>
+    `;
+  });
+  elements.netConnectionsTbody.innerHTML = html;
+}
+
+// ==========================================================================
+// Privacy Protection
+// ==========================================================================
+async function loadPrivacyTraces(isSilent = false) {
+  if (!isSilent && elements.privacyItemsList) {
+    elements.privacyItemsList.innerHTML = '<div class="loading-state">Gizlilik izleri taranıyor...</div>';
+  }
+
+  try {
+    const res = await fetch('/api/privacy');
+    if (!res.ok) throw new Error('Gizlilik izleri taranamadı');
+    const data = await res.json();
+    privacyData = data;
+
+    // Update badge & stats
+    if (elements.badgePrivacyCount) elements.badgePrivacyCount.textContent = data.totalItemsCount;
+    if (elements.privStatTotal) elements.privStatTotal.textContent = data.totalItemsCount;
+    if (elements.privStatSize) elements.privStatSize.textContent = data.totalSizeStr || '0 B';
+
+    let historyCount = 0;
+    let browserCount = 0;
+    (data.items || []).forEach(it => {
+      if (it.category === 'history') historyCount += it.count;
+      if (it.category === 'browser') browserCount += it.count;
+    });
+    if (elements.privStatHistory) elements.privStatHistory.textContent = historyCount;
+    if (elements.privStatBrowser) elements.privStatBrowser.textContent = browserCount;
+
+    renderPrivacyTraces();
+  } catch (err) {
+    console.error('Privacy scan error:', err);
+    if (elements.privacyItemsList) {
+      elements.privacyItemsList.innerHTML = `<div class="error-state">Hata: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+}
+
+function renderPrivacyTraces() {
+  if (!elements.privacyItemsList || !privacyData) return;
+
+  const items = privacyData.items || [];
+  if (items.length === 0) {
+    elements.privacyItemsList.innerHTML = `
+      <div class="empty-state" style="padding: 30px; text-align: center; color: var(--accent-emerald);">
+        <p>Tebrikler! Sisteminizde temizlenecek gizlilik izi bulunamadı.</p>
+      </div>
+    `;
+  } else {
+    let html = '';
+    items.forEach(it => {
+      let iconSvg = '';
+      if (it.icon === 'clock') {
+        iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
+      } else if (it.icon === 'terminal') {
+        iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>';
+      } else {
+        iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
+      }
+
+      html += `
+        <div class="privacy-item-row">
+          <div class="privacy-item-left">
+            <input type="checkbox" class="check-privacy-item" data-id="${escapeHtml(it.id)}" checked style="cursor: pointer; width: 18px; height: 18px;" />
+            <div class="privacy-icon ${escapeHtml(it.icon || 'globe')}">${iconSvg}</div>
+            <div>
+              <h4 style="font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 2px;">${escapeHtml(it.title)}</h4>
+              <p style="font-size: 0.78rem; color: var(--text-muted);">${escapeHtml(it.description)}</p>
+            </div>
+          </div>
+          <div style="text-align: right; flex-shrink: 0;">
+            <div style="font-weight: 700; font-size: 0.92rem; color: var(--accent-rose);">${it.count} ${escapeHtml(it.countLabel)}</div>
+            <div style="font-size: 0.75rem; color: var(--text-dim);">${escapeHtml(it.sizeStr)}</div>
+          </div>
+        </div>
+      `;
+    });
+    elements.privacyItemsList.innerHTML = html;
+  }
+
+  // Render TCC Permissions
+  if (elements.privacyPermissionsList && privacyData.permissions) {
+    let phtml = '';
+    privacyData.permissions.forEach(perm => {
+      phtml += `
+        <div class="permission-card-box">
+          <div class="permission-card-top">
+            <div class="permission-card-info">
+              <h4>${escapeHtml(perm.serviceName)}</h4>
+              <p>${escapeHtml(perm.description)}</p>
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-xs btn-reset-perm" data-service="${escapeHtml(perm.service)}" data-name="${escapeHtml(perm.serviceName)}" style="align-self: flex-start;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px; height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+            <span>İzinleri Sıfırla</span>
+          </button>
+        </div>
+      `;
+    });
+    elements.privacyPermissionsList.innerHTML = phtml;
+
+    elements.privacyPermissionsList.querySelectorAll('.btn-reset-perm').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const s = btn.dataset.service;
+        const n = btn.dataset.name;
+        resetTccPermission(s, n);
+      });
+    });
+  }
+}
+
+async function cleanSelectedPrivacyItems() {
+  if (!elements.privacyItemsList) return;
+  const checkboxes = elements.privacyItemsList.querySelectorAll('.check-privacy-item:checked');
+  const selectedIDs = Array.from(checkboxes).map(c => c.dataset.id);
+
+  if (selectedIDs.length === 0) {
+    showToast('Lütfen temizlemek için en az bir gizlilik izi seçin.', 'info');
+    return;
+  }
+
+  if (!confirm(`Seçilen ${selectedIDs.length} adet gizlilik kaydı kalıcı olarak temizlenecektir. Devam edilsin mi?`)) {
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/privacy/clean', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ itemIds: selectedIDs })
+    });
+    const result = await res.json();
+    if (res.ok && result.success) {
+      showToast(result.message || 'Gizlilik izleri temizlendi.', 'success');
+      loadPrivacyTraces();
+    } else {
+      showToast('Temizleme hatası: ' + (result.error || 'Başarısız'), 'error');
+    }
+  } catch (err) {
+    showToast('Hata: ' + err.message, 'error');
+  }
+}
+
+async function resetTccPermission(service, name) {
+  if (!confirm(`"${name}" için tüm uygulama izinleri sıfırlanacaktır. Uygulamalar ilk açılışta tekrar onay isteyecektir. Onaylıyor musunuz?`)) {
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/privacy/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ service: service })
+    });
+    const result = await res.json();
+    if (res.ok && result.success) {
+      showToast(result.message || `${name} izinleri sıfırlandı.`, 'success');
+    } else {
+      showToast('Sıfırlama hatası: ' + (result.error || 'Başarısız'), 'error');
+    }
+  } catch (err) {
+    showToast('Hata: ' + err.message, 'error');
+  }
+}
+
 // Setup Event Handlers
 function setupEventHandlers() {
+  // Extensions Handlers
+  if (elements.btnRefreshExtensions) {
+    elements.btnRefreshExtensions.addEventListener('click', () => {
+      loadExtensions();
+      showToast('Eklentiler güncellendi', 'info');
+    });
+  }
+
+  if (elements.inputSearchExtensions) {
+    elements.inputSearchExtensions.addEventListener('input', (e) => {
+      extSearchQuery = e.target.value.trim();
+      renderExtensionsList();
+    });
+  }
+
+  if (elements.extCategoryFilters) {
+    elements.extCategoryFilters.querySelectorAll('.tab-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        elements.extCategoryFilters.querySelectorAll('.tab-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        extCurrentFilter = pill.dataset.extFilter;
+        renderExtensionsList();
+      });
+    });
+  }
+
+  // Network Handlers
+  if (elements.btnRefreshNetwork) {
+    elements.btnRefreshNetwork.addEventListener('click', () => {
+      loadNetworkStats();
+      showToast('Ağ durumu güncellendi', 'info');
+    });
+  }
+
+  // Privacy Handlers
+  if (elements.btnRefreshPrivacy) {
+    elements.btnRefreshPrivacy.addEventListener('click', () => {
+      loadPrivacyTraces();
+      showToast('Gizlilik izleri güncellendi', 'info');
+    });
+  }
+
+  if (elements.btnCleanPrivacy) {
+    elements.btnCleanPrivacy.addEventListener('click', () => {
+      cleanSelectedPrivacyItems();
+    });
+  }
+
+  if (elements.checkAllPrivacy) {
+    elements.checkAllPrivacy.addEventListener('change', (e) => {
+      const checked = e.target.checked;
+      if (elements.privacyItemsList) {
+        elements.privacyItemsList.querySelectorAll('.check-privacy-item').forEach(chk => {
+          chk.checked = checked;
+        });
+      }
+    });
+  }
+
   // Startup Handlers
   if (elements.btnRefreshStartup) {
     elements.btnRefreshStartup.addEventListener('click', () => {

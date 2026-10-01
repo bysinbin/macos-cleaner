@@ -249,6 +249,19 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("/api/startup/delete", s.handleStartupDelete)
 	s.mux.HandleFunc("/api/startup/add", s.handleStartupAdd)
 
+	// System Extensions Manager (SystemExtensions, PluginKit, QuickLook, Spotlight, PrefPanes)
+	s.mux.HandleFunc("/api/extensions", s.handleExtensionsList)
+	s.mux.HandleFunc("/api/extensions/toggle", s.handleExtensionsToggle)
+	s.mux.HandleFunc("/api/extensions/delete", s.handleExtensionsDelete)
+
+	// Network Monitor (Interfaces, Throughput, Active TCP Sockets)
+	s.mux.HandleFunc("/api/network", s.handleNetworkStats)
+
+	// Privacy Protection (Recent Items, Terminal Histories, Browser Traces, TCC Reset)
+	s.mux.HandleFunc("/api/privacy", s.handlePrivacyList)
+	s.mux.HandleFunc("/api/privacy/clean", s.handlePrivacyClean)
+	s.mux.HandleFunc("/api/privacy/reset", s.handlePrivacyReset)
+
 	// Static UI assets from embedded FS
 	sub, err := fs.Sub(s.embeddedFS, "web")
 	if err != nil {

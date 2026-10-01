@@ -63,6 +63,13 @@ type PlistData struct {
 	Disabled         *bool    `json:"Disabled"`
 }
 
+// DisabledLoginRecord stores disabled user login items persistently
+type DisabledLoginRecord struct {
+	Name   string `json:"name"`
+	Path   string `json:"path"`
+	Hidden bool   `json:"hidden"`
+}
+
 // ScanStartupItems collects all login items, user launch agents, system launch agents, and daemons
 func ScanStartupItems(ctx context.Context) (*StartupSummary, error) {
 	summary := &StartupSummary{
@@ -72,22 +79,25 @@ func ScanStartupItems(ctx context.Context) (*StartupSummary, error) {
 	// 1. Collect running launchctl jobs (label -> pid)
 	runningJobs := getRunningLaunchdJobs()
 
-	// 2. Scan User Login Items (via AppleScript System Events)
+	// 2. Collect launchctl disabled states
+	disabledJobs := getLaunchctlDisabledServices()
+
+	// 3. Scan User Login Items (via AppleScript System Events + persistent disabled store)
 	loginItems := scanUserLoginItems(ctx)
 	summary.Items = append(summary.Items, loginItems...)
 
-	// 3. Scan User LaunchAgents (~/Library/LaunchAgents)
+	// 4. Scan User LaunchAgents (~/Library/LaunchAgents)
 	home, _ := os.UserHomeDir()
 	userAgentsDir := filepath.Join(home, "Library", "LaunchAgents")
-	userAgents := scanLaunchDirectory(userAgentsDir, ItemTypeUserAgent, "Kullanıcı Ajanı", runningJobs)
+	userAgents := scanLaunchDirectory(userAgentsDir, ItemTypeUserAgent, "Kullanıcı Ajanı", runningJobs, disabledJobs)
 	summary.Items = append(summary.Items, userAgents...)
 
-	// 4. Scan System LaunchAgents (/Library/LaunchAgents)
-	sysAgents := scanLaunchDirectory("/Library/LaunchAgents", ItemTypeSystemAgent, "Sistem Ajanı", runningJobs)
+	// 5. Scan System LaunchAgents (/Library/LaunchAgents)
+	sysAgents := scanLaunchDirectory("/Library/LaunchAgents", ItemTypeSystemAgent, "Sistem Ajanı", runningJobs, disabledJobs)
 	summary.Items = append(summary.Items, sysAgents...)
 
-	// 5. Scan System LaunchDaemons (/Library/LaunchDaemons)
-	sysDaemons := scanLaunchDirectory("/Library/LaunchDaemons", ItemTypeSystemDaemon, "Arka Plan Hizmeti", runningJobs)
+	// 6. Scan System LaunchDaemons (/Library/LaunchDaemons)
+	sysDaemons := scanLaunchDirectory("/Library/LaunchDaemons", ItemTypeSystemDaemon, "Arka Plan Hizmeti", runningJobs, disabledJobs)
 	summary.Items = append(summary.Items, sysDaemons...)
 
 	// Calculate counts
@@ -114,9 +124,48 @@ func ScanStartupItems(ctx context.Context) (*StartupSummary, error) {
 	return summary, nil
 }
 
-// scanUserLoginItems queries macOS System Events for registered login items
+// getDisabledLoginFilePath returns the path to ~/.disk-cleaner-disabled-login-items.json
+func getDisabledLoginFilePath() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ".disk-cleaner-disabled-login-items.json"
+	}
+	return filepath.Join(home, ".disk-cleaner-disabled-login-items.json")
+}
+
+// loadDisabledLoginRecords loads persistent disabled login items
+func loadDisabledLoginRecords() map[string]DisabledLoginRecord {
+	records := make(map[string]DisabledLoginRecord)
+	path := getDisabledLoginFilePath()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return records
+	}
+	var list []DisabledLoginRecord
+	if err := json.Unmarshal(data, &list); err == nil {
+		for _, rec := range list {
+			records[rec.Name] = rec
+		}
+	}
+	return records
+}
+
+// saveDisabledLoginRecords writes persistent disabled login items to disk
+func saveDisabledLoginRecords(records map[string]DisabledLoginRecord) {
+	list := make([]DisabledLoginRecord, 0, len(records))
+	for _, rec := range records {
+		list = append(list, rec)
+	}
+	data, err := json.MarshalIndent(list, "", "  ")
+	if err == nil {
+		_ = os.WriteFile(getDisabledLoginFilePath(), data, 0644)
+	}
+}
+
+// scanUserLoginItems queries macOS System Events for registered login items and merges disabled list
 func scanUserLoginItems(ctx context.Context) []StartupItem {
 	items := make([]StartupItem, 0)
+	activeNames := make(map[string]bool)
 
 	script := `
 tell application "System Events"
@@ -136,55 +185,130 @@ end tell
 `
 	cmd := exec.CommandContext(ctx, "osascript", "-e", script)
 	out, err := cmd.Output()
-	if err != nil {
-		return items
+	if err == nil {
+		lines := strings.Split(string(out), "\n")
+		for _, line := range lines {
+			line = strings.TrimSpace(line)
+			if line == "" {
+				continue
+			}
+			parts := strings.Split(line, "||")
+			if len(parts) < 3 {
+				continue
+			}
+			name := strings.TrimSpace(parts[0])
+			path := strings.TrimSpace(parts[1])
+			hiddenStr := strings.TrimSpace(parts[2])
+
+			if path == "missing value" {
+				path = ""
+			}
+
+			hidden := hiddenStr == "true"
+			vendor := inferVendorFromPathOrName(path, name)
+			running := isProcessRunning(name, path)
+
+			activeNames[name] = true
+
+			items = append(items, StartupItem{
+				ID:          "login:" + name,
+				Name:        name,
+				Label:       name,
+				Type:        ItemTypeLoginItem,
+				TypeName:    "Oturum Açma Öğesi",
+				Path:        path,
+				Program:     path,
+				Enabled:     true,
+				Running:     running,
+				RunAtLoad:   true,
+				Hidden:      hidden,
+				Vendor:      vendor,
+				Writable:    true,
+				Description: "Kullanıcı oturum açtığında otomatik başlatılan masaüstü uygulaması",
+			})
+		}
 	}
 
-	lines := strings.Split(string(out), "\n")
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if line == "" {
+	// Now merge with persistent disabled login items
+	disabledRecords := loadDisabledLoginRecords()
+	cleanedRecords := make(map[string]DisabledLoginRecord)
+
+	for name, rec := range disabledRecords {
+		if activeNames[name] {
+			// If it's already active in System Events, don't list as disabled
 			continue
 		}
-		parts := strings.Split(line, "||")
-		if len(parts) < 3 {
-			continue
-		}
-		name := strings.TrimSpace(parts[0])
-		path := strings.TrimSpace(parts[1])
-		hiddenStr := strings.TrimSpace(parts[2])
-
-		if path == "missing value" {
-			path = ""
-		}
-
-		hidden := hiddenStr == "true"
-		vendor := inferVendorFromPathOrName(path, name)
-		running := isProcessRunning(name, path)
+		cleanedRecords[name] = rec
+		vendor := inferVendorFromPathOrName(rec.Path, rec.Name)
+		running := isProcessRunning(rec.Name, rec.Path)
 
 		items = append(items, StartupItem{
-			ID:          "login:" + name,
-			Name:        name,
-			Label:       name,
+			ID:          "login:" + rec.Name,
+			Name:        rec.Name,
+			Label:       rec.Name,
 			Type:        ItemTypeLoginItem,
-			TypeName:    "Oturum Açma Öğesi",
-			Path:        path,
-			Program:     path,
-			Enabled:     true,
+			TypeName:    "Oturum Açma Öğesi (Devre Dışı)",
+			Path:        rec.Path,
+			Program:     rec.Path,
+			Enabled:     false,
 			Running:     running,
-			RunAtLoad:   true,
-			Hidden:      hidden,
+			RunAtLoad:   false,
+			Hidden:      rec.Hidden,
 			Vendor:      vendor,
 			Writable:    true,
-			Description: "Kullanıcı oturum açtığında otomatik başlatılan masaüstü uygulaması",
+			Description: "Geçici olarak devre dışı bırakılmış oturum açma öğesi",
 		})
+	}
+
+	if len(cleanedRecords) != len(disabledRecords) {
+		saveDisabledLoginRecords(cleanedRecords)
 	}
 
 	return items
 }
 
+// getLaunchctlDisabledServices parses `launchctl print-disabled` outputs
+// Returns a map where label -> true means disabled, false means explicitly enabled
+func getLaunchctlDisabledServices() map[string]bool {
+	disabledMap := make(map[string]bool)
+
+	// 1. User GUI domain
+	uid := os.Getuid()
+	if out, err := exec.Command("launchctl", "print-disabled", fmt.Sprintf("gui/%d", uid)).Output(); err == nil {
+		parsePrintDisabledOutput(string(out), disabledMap)
+	}
+
+	// 2. System domain
+	if out, err := exec.Command("launchctl", "print-disabled", "system").Output(); err == nil {
+		parsePrintDisabledOutput(string(out), disabledMap)
+	}
+
+	return disabledMap
+}
+
+func parsePrintDisabledOutput(out string, dest map[string]bool) {
+	lines := strings.Split(out, "\n")
+	for _, l := range lines {
+		l = strings.TrimSpace(l)
+		// e.g. "com.adobe.AdobeCreativeCloud" => enabled
+		// or "com.adobe.GC.Scheduler-1.0" => disabled
+		if strings.Contains(l, "=>") {
+			parts := strings.Split(l, "=>")
+			if len(parts) == 2 {
+				key := strings.Trim(strings.TrimSpace(parts[0]), `"`)
+				val := strings.Trim(strings.TrimSpace(parts[1]), `"`)
+				if val == "disabled" {
+					dest[key] = true
+				} else if val == "enabled" {
+					dest[key] = false
+				}
+			}
+		}
+	}
+}
+
 // scanLaunchDirectory reads a directory of launchd plists (.plist or .plist.disabled)
-func scanLaunchDirectory(dir string, itemType StartupItemType, typeName string, runningJobs map[string]int) []StartupItem {
+func scanLaunchDirectory(dir string, itemType StartupItemType, typeName string, runningJobs map[string]int, disabledJobs map[string]bool) []StartupItem {
 	items := make([]StartupItem, 0)
 
 	entries, err := os.ReadDir(dir)
@@ -198,7 +322,7 @@ func scanLaunchDirectory(dir string, itemType StartupItemType, typeName string, 
 			continue
 		}
 
-		isDisabledFile := strings.HasSuffix(name, ".plist.disabled")
+		isDisabledFile := strings.HasSuffix(name, ".plist.disabled") || strings.HasSuffix(name, ".disabled")
 		isPlist := strings.HasSuffix(name, ".plist")
 		if !isPlist && !isDisabledFile {
 			continue
@@ -225,9 +349,21 @@ func scanLaunchDirectory(dir string, itemType StartupItemType, typeName string, 
 			runAtLoad = *data.RunAtLoad
 		}
 
+		// Calculate enabled state:
+		// 1. If file has .disabled extension -> false
+		// 2. If launchctl print-disabled explicitly says disabled -> false
+		// 3. If plist internal Disabled is true -> false
+		// 4. Otherwise -> true
 		enabled := !isDisabledFile
 		if data.Disabled != nil && *data.Disabled {
 			enabled = false
+		}
+		if isDisabledInLaunchd, exists := disabledJobs[label]; exists {
+			if isDisabledInLaunchd {
+				enabled = false
+			} else if !isDisabledFile {
+				enabled = true
+			}
 		}
 
 		pid, running := runningJobs[label]
@@ -318,10 +454,78 @@ func ToggleStartupItem(id string, enable bool) error {
 
 	switch itemType {
 	case "login":
-		// For login items, toggle hidden state
-		script := fmt.Sprintf(`tell application "System Events" to set hidden of login item "%s" to %t`, target, !enable)
-		cmd := exec.Command("osascript", "-e", script)
-		return cmd.Run()
+		disabledRecords := loadDisabledLoginRecords()
+
+		if !enable {
+			// Disable: find active item in System Events to get its path, then delete it and record to persistent store
+			findScript := fmt.Sprintf(`
+tell application "System Events"
+    set foundPath to ""
+    set foundHidden to false
+    try
+        set theItem to login item "%s"
+        try
+            set foundPath to path of theItem
+        end try
+        set foundHidden to hidden of theItem
+        delete theItem
+    end try
+    return foundPath & "||" & foundHidden
+end tell
+`, target)
+			out, err := exec.Command("osascript", "-e", findScript).Output()
+			if err != nil {
+				return fmt.Errorf("oturum açma öğesi silinemedi: %w", err)
+			}
+			parts := strings.Split(strings.TrimSpace(string(out)), "||")
+			path := ""
+			hidden := false
+			if len(parts) >= 1 && parts[0] != "missing value" {
+				path = parts[0]
+			}
+			if len(parts) >= 2 && parts[1] == "true" {
+				hidden = true
+			}
+
+			// If path is missing, check if we already had a record
+			if path == "" {
+				if oldRec, ok := disabledRecords[target]; ok {
+					path = oldRec.Path
+					hidden = oldRec.Hidden
+				}
+			}
+
+			disabledRecords[target] = DisabledLoginRecord{
+				Name:   target,
+				Path:   path,
+				Hidden: hidden,
+			}
+			saveDisabledLoginRecords(disabledRecords)
+			return nil
+
+		} else {
+			// Enable: retrieve from persistent store and add back to System Events
+			rec, ok := disabledRecords[target]
+			if !ok || rec.Path == "" {
+				// Try using target as app name if in /Applications
+				potentialPath := filepath.Join("/Applications", target+".app")
+				if _, err := os.Stat(potentialPath); err == nil {
+					rec.Path = potentialPath
+				} else {
+					return fmt.Errorf("etkinleştirmek için uygulama yolu bulunamadı: %s", target)
+				}
+			}
+
+			addScript := fmt.Sprintf(`tell application "System Events" to make login item at end with properties {path:"%s", hidden:%t}`, rec.Path, rec.Hidden)
+			cmd := exec.Command("osascript", "-e", addScript)
+			if out, err := cmd.CombinedOutput(); err != nil {
+				return fmt.Errorf("oturum açma öğesi eklenemedi: %s (%w)", string(out), err)
+			}
+
+			delete(disabledRecords, target)
+			saveDisabledLoginRecords(disabledRecords)
+			return nil
+		}
 
 	case "user_agent", "system_agent", "system_daemon":
 		home, _ := os.UserHomeDir()
@@ -337,31 +541,80 @@ func ToggleStartupItem(id string, enable bool) error {
 
 		currentPath := filepath.Join(dir, target)
 		if _, err := os.Stat(currentPath); err != nil {
-			return fmt.Errorf("öğe dosyası bulunamadı: %s", currentPath)
+			// Check if exists with other suffix (.plist or .disabled)
+			if strings.HasSuffix(target, ".disabled") {
+				alt := strings.TrimSuffix(target, ".disabled")
+				if _, errAlt := os.Stat(filepath.Join(dir, alt)); errAlt == nil {
+					currentPath = filepath.Join(dir, alt)
+					target = alt
+				} else {
+					return fmt.Errorf("öğe dosyası bulunamadı: %s", currentPath)
+				}
+			} else if strings.HasSuffix(target, ".plist") {
+				alt := currentPath + ".disabled"
+				if _, errAlt := os.Stat(alt); errAlt == nil {
+					currentPath = alt
+					target = target + ".disabled"
+				} else {
+					return fmt.Errorf("öğe dosyası bulunamadı: %s", currentPath)
+				}
+			} else {
+				return fmt.Errorf("öğe dosyası bulunamadı: %s", currentPath)
+			}
 		}
 
-		if enable {
-			// If it's .disabled, rename to .plist and launchctl load
-			if strings.HasSuffix(target, ".disabled") {
-				newPath := strings.TrimSuffix(currentPath, ".disabled")
-				if err := os.Rename(currentPath, newPath); err != nil {
-					return fmt.Errorf("dosya yeniden adlandırılamadı: %w", err)
-				}
-				_ = exec.Command("launchctl", "load", "-w", newPath).Run()
-			} else {
-				_ = exec.Command("launchctl", "load", "-w", currentPath).Run()
-			}
-		} else {
-			// Disable: launchctl unload and rename to .disabled
-			_ = exec.Command("launchctl", "unload", "-w", currentPath).Run()
-			if strings.HasSuffix(target, ".plist") {
-				newPath := currentPath + ".disabled"
-				if err := os.Rename(currentPath, newPath); err != nil {
-					return fmt.Errorf("dosya devre dışı bırakılamadı: %w", err)
-				}
-			}
+		// Parse plist to get true label
+		label := strings.TrimSuffix(strings.TrimSuffix(target, ".disabled"), ".plist")
+		if data, err := parsePlistViaPlutil(currentPath); err == nil && data.Label != "" {
+			label = data.Label
 		}
-		return nil
+
+		uid := os.Getuid()
+
+		if itemType == "system_daemon" {
+			// System Daemons require system domain
+			action := "disable"
+			if enable {
+				action = "enable"
+			}
+			cmd := exec.Command("launchctl", action, "system/"+label)
+			if err := cmd.Run(); err != nil {
+				// Fallback to osascript admin privileges
+				adminScript := fmt.Sprintf(`do shell script "launchctl %s system/%s" with administrator privileges`, action, label)
+				if errAdm := exec.Command("osascript", "-e", adminScript).Run(); errAdm != nil {
+					return fmt.Errorf("sistem servisi değiştirilemedi: %w", errAdm)
+				}
+			}
+			return nil
+		}
+
+		// User Agent & System Agent run in gui domain
+		if enable {
+			// launchctl enable gui/<uid>/<label>
+			_ = exec.Command("launchctl", "enable", fmt.Sprintf("gui/%d/%s", uid, label)).Run()
+			_ = exec.Command("launchctl", "bootstrap", fmt.Sprintf("gui/%d", uid), currentPath).Run()
+
+			// If file was renamed to .disabled and we have write permission, restore .plist
+			if strings.HasSuffix(target, ".disabled") && isFileWritable(currentPath) {
+				newPath := strings.TrimSuffix(currentPath, ".disabled")
+				_ = os.Rename(currentPath, newPath)
+			}
+			return nil
+		} else {
+			// Disable: bootout & disable via launchctl
+			_ = exec.Command("launchctl", "bootout", fmt.Sprintf("gui/%d/%s", uid, label)).Run()
+			cmd := exec.Command("launchctl", "disable", fmt.Sprintf("gui/%d/%s", uid, label))
+			if err := cmd.Run(); err != nil {
+				return fmt.Errorf("launchctl servisi devre dışı bırakılamadı: %w", err)
+			}
+
+			// If file is writable and ends in .plist, optionally rename to .disabled
+			if strings.HasSuffix(target, ".plist") && isFileWritable(currentPath) {
+				newPath := currentPath + ".disabled"
+				_ = os.Rename(currentPath, newPath)
+			}
+			return nil
+		}
 
 	default:
 		return fmt.Errorf("bilinmeyen öğe türü: %s", itemType)
@@ -380,9 +633,14 @@ func RemoveStartupItem(id string, useTrash bool) error {
 
 	switch itemType {
 	case "login":
+		// Remove from System Events and from disabled store
 		script := fmt.Sprintf(`tell application "System Events" to delete login item "%s"`, target)
-		cmd := exec.Command("osascript", "-e", script)
-		return cmd.Run()
+		_ = exec.Command("osascript", "-e", script).Run()
+
+		disabledRecords := loadDisabledLoginRecords()
+		delete(disabledRecords, target)
+		saveDisabledLoginRecords(disabledRecords)
+		return nil
 
 	case "user_agent", "system_agent", "system_daemon":
 		home, _ := os.UserHomeDir()
@@ -401,18 +659,36 @@ func RemoveStartupItem(id string, useTrash bool) error {
 			return fmt.Errorf("öğe dosyası bulunamadı: %s", plistPath)
 		}
 
-		// First unload
+		// First unload / bootout
+		label := strings.TrimSuffix(strings.TrimSuffix(target, ".disabled"), ".plist")
+		uid := os.Getuid()
+		if itemType == "system_daemon" {
+			_ = exec.Command("launchctl", "bootout", "system/"+label).Run()
+		} else {
+			_ = exec.Command("launchctl", "bootout", fmt.Sprintf("gui/%d/%s", uid, label)).Run()
+		}
 		_ = exec.Command("launchctl", "unload", "-w", plistPath).Run()
 
-		if useTrash {
-			script := fmt.Sprintf(`tell application "Finder" to delete POSIX file "%s"`, plistPath)
-			if err := exec.Command("osascript", "-e", script).Run(); err == nil {
+		// If user has write permission, try Finder trash or direct remove
+		if isFileWritable(plistPath) {
+			if useTrash {
+				script := fmt.Sprintf(`tell application "Finder" to delete POSIX file "%s"`, plistPath)
+				if err := exec.Command("osascript", "-e", script).Run(); err == nil {
+					return nil
+				}
+			}
+			if err := os.Remove(plistPath); err == nil {
 				return nil
 			}
 		}
 
-		// Fallback to direct remove
-		return os.Remove(plistPath)
+		// Fallback to administrator privileges for root-owned files in /Library
+		adminScript := fmt.Sprintf(`do shell script "rm -f " & quoted form of "%s" with administrator privileges`, plistPath)
+		cmd := exec.Command("osascript", "-e", adminScript)
+		if out, err := cmd.CombinedOutput(); err != nil {
+			return fmt.Errorf("dosya silinemedi (yönetici izni hatası): %s (%w)", string(out), err)
+		}
+		return nil
 
 	default:
 		return fmt.Errorf("bilinmeyen öğe türü: %s", itemType)
@@ -550,7 +826,6 @@ func cleanDisplayName(label, filename string) string {
 	name := strings.TrimSuffix(strings.TrimSuffix(filename, ".disabled"), ".plist")
 	parts := strings.Split(name, ".")
 	if len(parts) > 2 {
-		// e.g. com.valvesoftware.steamclean -> Steamclean
 		last := parts[len(parts)-1]
 		if len(last) > 2 {
 			var b bytes.Buffer

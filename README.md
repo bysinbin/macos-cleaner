@@ -84,10 +84,26 @@ Go ile geliştirilmiş, macOS için modern, yüksek performanslı ve görsel dis
     - **Test (Dry Run) & Çöp Kutusu Modları**: Dosyaları kalıcı silmek yerine Finder Çöp Kutusuna taşıma veya sadece test çalıştırma opsiyonu.
     - **Kritik Sistem Dizin Koruması**: Sistem kök dizinleri (`/System`, `/usr`, `/Library`, `/Applications`, `~/.ssh`) otomatik koruma altındadır.
 20. **🚀 Başlangıç Öğeleri & Arka Plan Hizmetleri Yöneticisi (CleanMyMac Optimization Tarzı)**:
-    - **Kullanıcı Oturum Açma Öğeleri (Login Items)**: Mac açıldığında otomatik başlayan uygulamaları listeleme, gizli başlatma, listeden kaldırma ve yeni `.app` ekleme.
-    - **Kullanıcı Başlatma Ajanları (User LaunchAgents — `~/Library/LaunchAgents`)**: Oturumla başlayan arka plan ajanlarını modern Aç/Kapa (Toggle) anahtarlarıyla anında etkinleştirme veya devre dışı bırakma.
-    - **Sistem Ajanları & Daemons (`/Library/LaunchAgents` ve `/Library/LaunchDaemons`)**: Adobe, Google, Microsoft, Steam gibi servisleri ve çalışan aktif PID numaralarını görme, yönetme ve filtreleme.
-    - **Finder Entegrasyonu & Güvenli Kaldırma**: Servis veya uygulama dosyasını Finder'da gösterme ve güvenle Çöp Kutusuna taşıma.
+    - **Kullanıcı Oturum Açma Öğeleri (Login Items)**: Mac açıldığında otomatik başlayan uygulamaları listeleme, gizli başlatma, listeden kaldırma, kalıcı pasife alma ve yeni `.app` ekleme. (TouchSwitcher ve benzeri masaüstü uygulamaları için kalıcı durum yönetimi).
+    - **Kullanıcı & Sistem Başlatma Ajanları (LaunchAgents)**: Oturumla başlayan ajanları modern Aç/Kapa anahtarlarıyla anında etkinleştirme veya devre dışı bırakma (AdobeCreativeCloud vb. izin hataları olmadan doğrudan `launchctl` desteği ile).
+    - **Sistem Arka Plan Hizmetleri (LaunchDaemons)**: Sistem düzeyinde çalışan servisleri (CleanMyMac, PostgreSQL, Warp vb.) listeleme ve yönetme.
+21. **🧩 Sistem ve Uygulama Eklenti Yöneticisi (Extensions Manager)**:
+    - **Sistem Sürücü & Ağ Eklentileri (DriverKit & NetworkExtension)**: `systemextensionsctl` entegrasyonu ile VPN filtreleri, USB/Seri sürücüleri ve durumlarını görüntüleme.
+    - **Finder & Paylaşım Eklentileri (PluginKit Appex)**: Finder senkronizasyon (Creative Cloud, UnzipOne vb.), paylaşım menüsü ve widget eklentilerini tek tıkla Aç/Kapat yapabilme.
+    - **Hızlı Bakış (QuickLook) & Spotlight**: Sistem ve kullanıcı dizinlerindeki `.qlgenerator` ve `.mdimporter` eklentilerini yönetme.
+22. **🔋 Genişletilmiş Donanım Monitörü (Pil, GPU, Disk I/O)**:
+    - **Pil & Güç Durumu**: Pil şarj yüzdesi, şarj durumu, pil sağlığı (Health %), devir sayısı (Cycle Count), pil sıcaklığı (°C), güç kaynağı (AC/Pil) ve kalan süre.
+    - **Grafik İşlemci (GPU)**: Apple Silicon GPU modeli, çekirdek sayısı, Metal sürümü ve ekran çözünürlüğü.
+    - **Depolama & Disk I/O**: NVMe SSD dosya sistemi (APFS), S.M.A.R.T. sağlık durumu (Verified), anlık disk okuma/yazma I/O hızı ve TPS.
+23. **🌐 Ağ Monitörü (Network Monitor & Active Connections)**:
+    - **Ağ Adaptörü & IP Yapılandırması**: Aktif arayüz (en0 / Wi-Fi), Yerel IPv4 adresi, Donanım (MAC) adresi, Ağ Geçidi (Gateway) ve DNS sunucuları.
+    - **Anlık Trafik & Hız**: Gerçek zamanlı İndirme (Download) ve Yükleme (Upload) hız göstergesi ve toplam aktarılan veri sayaçları.
+    - **Aktif TCP Bağlantıları Tablosu**: Sistemdeki uygulamaların (AnyDesk, Chrome, Node vb.) aktif TCP soketleri, PID, port ve uzak sunucu bağlantı listesi.
+24. **🛡️ Gizlilik Koruması & İz Temizleyici (Privacy Protection)**:
+    - **Son Açılan Belgeler & Sunucular**: `sfltool` entegrasyonuyla Finder ve sistem son kullanılanlar listesini temizleme.
+    - **Terminal Komut Geçmişi**: `.zsh_history`, `.bash_history`, Python ve Node REPL komut kayıtlarını görüntüleme ve tek tıkla güvenle temizleme.
+    - **Tarayıcı Gizlilik Verileri**: Safari, Chrome, Arc, Brave ve Firefox yerel gezinme veritabanları ve çerez izlerini kaldırma.
+    - **macOS Uygulama İzin Sıfırlayıcı (TCC)**: Kamera, Mikrofon, Ekran Kaydı, Erişilebilirlik ve Tam Disk yetkilerini tek tıkla sıfırlama (`tccutil reset`).
 
 ---
 

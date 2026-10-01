@@ -1013,5 +1013,153 @@ func (s *Server) handleStartupAdd(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// ----------------------------------------------------
+// System Extensions Handlers
+// ----------------------------------------------------
+
+func (s *Server) handleExtensionsList(w http.ResponseWriter, r *http.Request) {
+	summary, err := cleaner.ScanExtensions(r.Context())
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+	writeJSON(w, http.StatusOK, summary)
+}
+
+func (s *Server) handleExtensionsToggle(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		ID      string `json:"id"`
+		Enabled bool   `json:"enabled"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Geçersiz istek"})
+		return
+	}
+
+	if err := cleaner.ToggleExtension(req.ID, req.Enabled); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+
+	statusMsg := "Eklenti devre dışı bırakıldı."
+	if req.Enabled {
+		statusMsg = "Eklenti başarıyla etkinleştirildi."
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"success": true,
+		"message": statusMsg,
+	})
+}
+
+func (s *Server) handleExtensionsDelete(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		ID   string `json:"id"`
+		Path string `json:"path"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Geçersiz istek"})
+		return
+	}
+
+	if err := cleaner.DeleteExtension(req.ID, req.Path); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"success": true,
+		"message": "Eklenti başarıyla kaldırıldı.",
+	})
+}
+
+// ----------------------------------------------------
+// Network Monitor Handler
+// ----------------------------------------------------
+
+func (s *Server) handleNetworkStats(w http.ResponseWriter, r *http.Request) {
+	stats, err := cleaner.GetNetworkStats(r.Context())
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+	writeJSON(w, http.StatusOK, stats)
+}
+
+// ----------------------------------------------------
+// Privacy Protection Handlers
+// ----------------------------------------------------
+
+func (s *Server) handlePrivacyList(w http.ResponseWriter, r *http.Request) {
+	summary, err := cleaner.ScanPrivacyTraces(r.Context())
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+	writeJSON(w, http.StatusOK, summary)
+}
+
+func (s *Server) handlePrivacyClean(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		ItemIDs []string `json:"itemIds"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Geçersiz istek"})
+		return
+	}
+
+	cleaned, err := cleaner.CleanPrivacyItems(req.ItemIDs)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"success": true,
+		"cleaned": cleaned,
+		"message": fmt.Sprintf("%d gizlilik öğesi başarıyla temizlendi.", cleaned),
+	})
+}
+
+func (s *Server) handlePrivacyReset(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Service string `json:"service"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Geçersiz istek"})
+		return
+	}
+
+	if err := cleaner.ResetPrivacyPermission(req.Service); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"success": true,
+		"message": fmt.Sprintf("%s izinleri başarıyla sıfırlandı.", req.Service),
+	})
+}
+
+
 
 

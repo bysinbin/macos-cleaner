@@ -123,6 +123,23 @@
           <span>Başlangıç Öğeleri</span>
           <span class="nav-badge" id="badge-startup-count">0</span>
         </button>
+
+        <button class="nav-item" data-tab="extensions" id="nav-tab-extensions">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 6.087c0-.355.186-.676.401-.959A3.75 3.75 0 0010.5 2.25c-1.28 0-2.417.643-3.109 1.628-.215.283-.401.604-.401.959v2.163H4.5A2.25 2.25 0 002.25 9.25v2.25h2.163c.355 0 .676.186.959.401.985.692 1.628 1.829 1.628 3.109 0 1.28-.643 2.417-1.628 3.109-.283.215-.604.401-.959.401H2.25v2.25A2.25 2.25 0 004.5 22.5h2.25v-2.163c0-.355.186-.676.401-.959a3.75 3.75 0 016.218 0c.215.283.401.604.401.959V22.5h2.25a2.25 2.25 0 002.25-2.25v-2.25h-2.163c-.355 0-.676-.186-.959-.401a3.75 3.75 0 010-6.218c.283-.215.604-.401.959-.401H21.75V9.25A2.25 2.25 0 0019.5 7h-2.25V4.837z"/></svg>
+          <span>Eklenti Yöneticisi</span>
+          <span class="nav-badge" id="badge-extensions-count">0</span>
+        </button>
+
+        <button class="nav-item" data-tab="network" id="nav-tab-network">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-.778.099-1.533.284-2.253"/></svg>
+          <span>Ağ Monitörü</span>
+        </button>
+
+        <button class="nav-item" data-tab="privacy" id="nav-tab-privacy">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+          <span>Gizlilik Koruması</span>
+          <span class="nav-badge" id="badge-privacy-count">0</span>
+        </button>
       </nav>
 
       <div class="sidebar-footer">
@@ -1147,6 +1164,103 @@
               </div>
             </div>
           </div>
+
+          <!-- Battery Card -->
+          <div class="glass-card monitor-card" id="mon-battery-card">
+            <div class="monitor-card-header">
+              <div class="monitor-icon batt-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="18" height="12" rx="2"/><path d="M22 10v4"/><path d="M6 10h4v4H6z"/></svg>
+              </div>
+              <div>
+                <h3>Pil & Güç Kaynağı</h3>
+                <span class="sub" id="mon-batt-source">Şebeke Gücü (AC)</span>
+              </div>
+            </div>
+            <div class="monitor-metric-big">
+              <span class="metric-val" id="mon-batt-pct">--%</span>
+              <span class="metric-unit" id="mon-batt-charging-status">Şarj Ediliyor</span>
+            </div>
+            <div class="monitor-stats-list">
+              <div class="mon-stat-row">
+                <span>Pil Sağlığı:</span>
+                <strong id="mon-batt-health">--%</strong>
+              </div>
+              <div class="mon-stat-row">
+                <span>Devir (Döngü) Sayısı:</span>
+                <strong id="mon-batt-cycles">--</strong>
+              </div>
+              <div class="mon-stat-row">
+                <span>Sıcaklık:</span>
+                <strong id="mon-batt-temp">-- °C</strong>
+              </div>
+              <div class="mon-stat-row">
+                <span>Durum:</span>
+                <strong id="mon-batt-condition" style="color: var(--accent-emerald);">Normal</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- GPU Card -->
+          <div class="glass-card monitor-card">
+            <div class="monitor-card-header">
+              <div class="monitor-icon gpu-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z"/><path d="M7 10h2v4H7zM11 10h2v4h-2zM15 10h2v4h-2z"/></svg>
+              </div>
+              <div>
+                <h3>Grafik İşlemci (GPU)</h3>
+                <span class="sub" id="mon-gpu-model">Apple Silicon GPU</span>
+              </div>
+            </div>
+            <div class="monitor-metric-big">
+              <span class="metric-val" id="mon-gpu-cores">8</span>
+              <span class="metric-unit">GPU Çekirdeği</span>
+            </div>
+            <div class="monitor-stats-list">
+              <div class="mon-stat-row">
+                <span>Metal Desteği:</span>
+                <strong id="mon-gpu-metal">Metal Destekli</strong>
+              </div>
+              <div class="mon-stat-row">
+                <span>Ana Ekran Çözünürlüğü:</span>
+                <strong id="mon-gpu-res">Retina Ekran</strong>
+              </div>
+              <div class="mon-stat-row">
+                <span>Üretici:</span>
+                <strong id="mon-gpu-vendor">Apple</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Disk I/O & S.M.A.R.T. Card -->
+          <div class="glass-card monitor-card">
+            <div class="monitor-card-header">
+              <div class="monitor-icon disk-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+              </div>
+              <div>
+                <h3>Depolama & Disk I/O</h3>
+                <span class="sub" id="mon-disk-type">NVMe SSD (APFS)</span>
+              </div>
+            </div>
+            <div class="monitor-metric-big">
+              <span class="metric-val" id="mon-disk-pct">0%</span>
+              <span class="metric-unit">Dolu</span>
+            </div>
+            <div class="monitor-stats-list">
+              <div class="mon-stat-row">
+                <span>Kullanılan / Boş:</span>
+                <strong><span id="mon-disk-used">--</span> / <span id="mon-disk-free">--</span></strong>
+              </div>
+              <div class="mon-stat-row">
+                <span>S.M.A.R.T. Sağlığı:</span>
+                <strong id="mon-disk-smart" style="color: var(--accent-emerald);">Doğrulandı</strong>
+              </div>
+              <div class="mon-stat-row">
+                <span>Anlık I/O Hızı:</span>
+                <strong id="mon-disk-throughput">-- MB/s</strong>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1210,6 +1324,224 @@
         <!-- Startup Items List -->
         <div class="startup-items-container" id="startup-items-list">
           <div class="loading-state">Başlangıç ve arka plan öğeleri taranıyor...</div>
+        </div>
+      </section>
+
+      <!-- TAB 18: SYSTEM EXTENSIONS MANAGER -->
+      <section class="tab-pane" id="pane-extensions">
+        <div class="pane-toolbar">
+          <div class="toolbar-info">
+            <h2>macOS Eklenti Yöneticisi (Extensions)</h2>
+            <p>Sistem sürücüleri, ağ filtreleri, Finder senkronizasyon, QuickLook ve Spotlight arama eklentilerini görüntüleyin ve yönetin</p>
+          </div>
+          <div class="toolbar-buttons">
+            <button class="btn btn-primary" id="btn-refresh-extensions">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+              <span>Yeniden Tara</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Metrics Cards -->
+        <div class="stats-grid" style="margin-bottom: 24px;">
+          <div class="glass-card stat-card">
+            <span class="stat-label">Toplam Eklenti</span>
+            <span class="stat-val" id="ext-stat-total">0</span>
+            <span class="stat-desc">Sistem ve Uygulama Eklentileri</span>
+          </div>
+          <div class="glass-card stat-card">
+            <span class="stat-label">Aktif / Etkin</span>
+            <span class="stat-val" id="ext-stat-active" style="color: var(--accent-emerald);">0</span>
+            <span class="stat-desc">Kullanımda Olanlar</span>
+          </div>
+          <div class="glass-card stat-card">
+            <span class="stat-label">Sürücü & Ağ Eklentileri</span>
+            <span class="stat-val" id="ext-stat-sysext" style="color: var(--accent-amber);">0</span>
+            <span class="stat-desc">DriverKit ve NetworkExtension</span>
+          </div>
+          <div class="glass-card stat-card">
+            <span class="stat-label">Uygulama & Finder</span>
+            <span class="stat-val" id="ext-stat-appex" style="color: var(--accent-indigo);">0</span>
+            <span class="stat-desc">PluginKit, Widget & Sync</span>
+          </div>
+        </div>
+
+        <!-- Filters & Search Toolbar -->
+        <div class="startup-toolbar-row" style="margin-bottom: 16px;">
+          <div class="tab-pill-group" id="ext-category-filters">
+            <button class="tab-pill active" data-ext-filter="all">Tümü (<span id="pill-ext-all">0</span>)</button>
+            <button class="tab-pill" data-ext-filter="sysext">Sürücü & Ağ (<span id="pill-ext-sysext">0</span>)</button>
+            <button class="tab-pill" data-ext-filter="pluginkit">Uygulama & Finder (<span id="pill-ext-pluginkit">0</span>)</button>
+            <button class="tab-pill" data-ext-filter="quicklook">QuickLook (<span id="pill-ext-quicklook">0</span>)</button>
+            <button class="tab-pill" data-ext-filter="spotlight">Spotlight (<span id="pill-ext-spotlight">0</span>)</button>
+            <button class="tab-pill" data-ext-filter="prefpane">Tercih Panelleri (<span id="pill-ext-prefpane">0</span>)</button>
+          </div>
+          <div class="search-input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="input-search-extensions" class="custom-input" placeholder="Eklenti veya geliştirici ara..." />
+          </div>
+        </div>
+
+        <!-- Extensions Items Container -->
+        <div class="startup-items-container" id="extensions-items-list">
+          <div class="loading-state">Eklentiler taranıyor...</div>
+        </div>
+      </section>
+
+      <!-- TAB 19: NETWORK MONITOR -->
+      <section class="tab-pane" id="pane-network">
+        <div class="pane-toolbar">
+          <div class="toolbar-info">
+            <h2>Ağ & Bağlantı Monitörü (Network Monitor)</h2>
+            <p>Gerçek zamanlı ağ trafiği, indirme/yükleme hızları, adaptör ayarları ve aktif TCP soket bağlantıları</p>
+          </div>
+          <div class="toolbar-buttons">
+            <button class="btn btn-primary" id="btn-refresh-network">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+              <span>Şimdi Güncelle</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Network Overview Cards -->
+        <div class="stats-grid" style="margin-bottom: 24px;">
+          <div class="glass-card stat-card">
+            <span class="stat-label">Ağ Durumu & Arayüz</span>
+            <span class="stat-val" id="net-stat-status" style="color: var(--accent-emerald); font-size: 1.3rem;">Bağlı</span>
+            <span class="stat-desc" id="net-stat-iface">Wi-Fi (en0)</span>
+          </div>
+          <div class="glass-card stat-card">
+            <span class="stat-label">Yerel IP & Ağ Geçidi</span>
+            <span class="stat-val" id="net-stat-ip" style="font-size: 1.25rem;">192.168...</span>
+            <span class="stat-desc" id="net-stat-gw">Ağ Geçidi: --</span>
+          </div>
+          <div class="glass-card stat-card">
+            <span class="stat-label">Anlık İndirme (Download)</span>
+            <span class="stat-val" id="net-stat-speed-in" style="color: var(--accent-cyan);">0 KB/s</span>
+            <span class="stat-desc" id="net-stat-total-in">Toplam Gelen: 0 GB</span>
+          </div>
+          <div class="glass-card stat-card">
+            <span class="stat-label">Anlık Yükleme (Upload)</span>
+            <span class="stat-val" id="net-stat-speed-out" style="color: var(--accent-indigo);">0 KB/s</span>
+            <span class="stat-desc" id="net-stat-total-out">Toplam Giden: 0 GB</span>
+          </div>
+        </div>
+
+        <!-- Network Details Grid -->
+        <div class="maintenance-box glass-card" style="margin-bottom: 24px; padding: 20px;">
+          <h3 style="margin-bottom: 12px; font-size: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; color: var(--accent-cyan);"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            Ağ Bağdaştırıcı Yapılandırması
+          </h3>
+          <div class="monitor-stats-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+            <div class="mon-stat-row"><span>Donanım (MAC) Adresi:</span><strong id="net-detail-mac">--</strong></div>
+            <div class="mon-stat-row"><span>DNS Sunucuları:</span><strong id="net-detail-dns">--</strong></div>
+            <div class="mon-stat-row"><span>Aktif TCP Soket Sayısı:</span><strong id="net-detail-conn-count">0</strong></div>
+          </div>
+        </div>
+
+        <!-- Active TCP Sockets Table -->
+        <div class="table-container glass-card" style="padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 style="font-size: 0.95rem; color: var(--text-primary);">Aktif TCP Soketleri & Süreç Bağlantıları</h3>
+            <span class="table-badge" id="net-conn-badge">0 Bağlantı</span>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="data-table" id="net-connections-table">
+              <thead>
+                <tr>
+                  <th>Uygulama / Komut</th>
+                  <th>PID</th>
+                  <th>Kullanıcı</th>
+                  <th>Protokol</th>
+                  <th>Yerel Adres</th>
+                  <th>Uzak Sunucu / Port</th>
+                  <th>Durum</th>
+                </tr>
+              </thead>
+              <tbody id="net-connections-tbody">
+                <tr><td colspan="7" class="loading-state">Ağ soketleri yükleniyor...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 20: PRIVACY PROTECTION -->
+      <section class="tab-pane" id="pane-privacy">
+        <div class="pane-toolbar">
+          <div class="toolbar-info">
+            <h2>macOS Gizlilik Koruması & İz Temizleyici (Privacy Protection)</h2>
+            <p>Son açılan dosyalar, Terminal komut geçmişleri, tarayıcı izleri ve uygulama izinlerini tek merkezden yönetin</p>
+          </div>
+          <div class="toolbar-buttons">
+            <button class="btn btn-secondary" id="btn-refresh-privacy">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+              <span>Yeniden Tara</span>
+            </button>
+            <button class="btn btn-danger" id="btn-clean-privacy">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+              <span>Seçili İzleri Temizle</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Privacy Overview Cards -->
+        <div class="stats-grid" style="margin-bottom: 24px;">
+          <div class="glass-card stat-card">
+            <span class="stat-label">Toplam Gizlilik İzi</span>
+            <span class="stat-val" id="priv-stat-total" style="color: var(--accent-rose);">0</span>
+            <span class="stat-desc">Kayıtlı Faaliyet ve Dosya</span>
+          </div>
+          <div class="glass-card stat-card">
+            <span class="stat-label">Tahmini İz Boyutu</span>
+            <span class="stat-val" id="priv-stat-size">0 MB</span>
+            <span class="stat-desc">Disk Alanı</span>
+          </div>
+          <div class="glass-card stat-card">
+            <span class="stat-label">Terminal Komut Satırları</span>
+            <span class="stat-val" id="priv-stat-history" style="color: var(--accent-amber);">0</span>
+            <span class="stat-desc">Zsh ve Bash Geçmişi</span>
+          </div>
+          <div class="glass-card stat-card">
+            <span class="stat-label">Tarayıcı & Belge İzleri</span>
+            <span class="stat-val" id="priv-stat-browser" style="color: var(--accent-indigo);">0</span>
+            <span class="stat-desc">Safari, Chrome vb.</span>
+          </div>
+        </div>
+
+        <!-- Privacy Items Container -->
+        <div class="privacy-container" style="display: flex; flex-direction: column; gap: 20px;">
+          <!-- Trace Cards -->
+          <div class="glass-card" style="padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3 style="font-size: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; color: var(--accent-rose);"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Tespit Edilen Gizlilik ve Etkinlik İzleri
+              </h3>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer;">
+                <input type="checkbox" id="check-all-privacy" checked style="cursor: pointer; width: 16px; height: 16px;" />
+                <span>Tümünü Seç</span>
+              </label>
+            </div>
+            <div id="privacy-items-list" style="display: flex; flex-direction: column; gap: 12px;">
+              <div class="loading-state">Gizlilik izleri taranıyor...</div>
+            </div>
+          </div>
+
+          <!-- macOS TCC Permissions Reset Section -->
+          <div class="glass-card" style="padding: 20px;">
+            <h3 style="font-size: 1rem; color: var(--text-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; color: var(--accent-amber);"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              macOS Uygulama İzin Sıfırlayıcı (TCC)
+            </h3>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">
+              Uygulamaların Mac donanımınıza ve hassas verilerinize olan izinlerini sıfırlayın. Sıfırlanan izinler, uygulamalar tekrar açıldığında kullanıcıdan yeniden yetki isteyecektir.
+            </p>
+            <div class="permissions-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;" id="privacy-permissions-list">
+              <!-- Dynamically populated or rendered -->
+            </div>
+          </div>
         </div>
       </section>
     </main>
