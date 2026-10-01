@@ -3394,6 +3394,9 @@ async function loadNetworkStats(isSilent = false) {
 function renderNetworkStats(stats) {
   if (!stats) return;
 
+  // Always update live traffic chart first
+  renderNetworkChart(stats);
+
   if (elements.netStatStatus) elements.netStatStatus.textContent = stats.status || 'Bağlı';
   if (elements.netStatIface) elements.netStatIface.textContent = stats.interfaceName || 'en0';
   if (elements.netStatIp) elements.netStatIp.textContent = stats.ipv4Address || 'Bilinmiyor';
@@ -3431,8 +3434,15 @@ function renderNetworkStats(stats) {
     `;
   });
   elements.netConnectionsTbody.innerHTML = html;
+}
 
-  renderNetworkChart(stats);
+// Utility: Format Network Speed
+function formatSpeed(bytesPerSec) {
+  if (!bytesPerSec || bytesPerSec <= 0 || isNaN(bytesPerSec)) return '0 KB/s';
+  const k = 1024;
+  if (bytesPerSec < k) return `${Math.round(bytesPerSec)} B/s`;
+  if (bytesPerSec < k * k) return `${(bytesPerSec / k).toFixed(1)} KB/s`;
+  return `${(bytesPerSec / (k * k)).toFixed(1)} MB/s`;
 }
 
 // Live Network Rolling History Buffer
@@ -3472,36 +3482,33 @@ function renderNetworkChart(stats) {
   // Resize canvas according to layout width
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
-  const w = rect.width || 600;
-  const h = rect.height || 150;
+  const w = (rect.width > 50 ? rect.width : (canvas.parentElement ? canvas.parentElement.clientWidth : 600)) || 600;
+  const h = 150;
 
-  if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
-    canvas.width = Math.round(w * dpr);
-    canvas.height = Math.round(h * dpr);
-  }
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
 
-  ctx.save();
-  ctx.scale(dpr, dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, w, h);
 
   // Horizontal Grid Lines
   ctx.lineWidth = 1;
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-  for (let y = 20; y < h; y += 35) {
+  for (let y = 25; y < h - 10; y += 32) {
     ctx.beginPath();
     ctx.moveTo(0, y);
     ctx.lineTo(w, y);
     ctx.stroke();
   }
 
-  const peak = netHistory.peakBps * 1.15;
+  const peak = Math.max(netHistory.peakBps * 1.15, 1024 * 50);
   const stepX = w / (netHistory.max - 1);
 
   function drawBezierLine(data, strokeColor, fillColor) {
     if (data.length < 2) return;
     const pts = data.map((val, idx) => ({
       x: idx * stepX,
-      y: h - 10 - (val / peak) * (h - 25)
+      y: Math.max(15, Math.min(h - 14, (h - 14) - (val / peak) * (h - 35)))
     }));
 
     // Fill curve gradient
@@ -3535,17 +3542,15 @@ function renderNetworkChart(stats) {
 
   // Draw Download Curve (Cyan)
   const gradDown = ctx.createLinearGradient(0, 0, 0, h);
-  gradDown.addColorStop(0, 'rgba(6, 182, 212, 0.28)');
+  gradDown.addColorStop(0, 'rgba(6, 182, 212, 0.32)');
   gradDown.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
   drawBezierLine(netHistory.down, '#06b6d4', gradDown);
 
   // Draw Upload Curve (Indigo)
   const gradUp = ctx.createLinearGradient(0, 0, 0, h);
-  gradUp.addColorStop(0, 'rgba(99, 102, 241, 0.24)');
+  gradUp.addColorStop(0, 'rgba(99, 102, 241, 0.28)');
   gradUp.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
   drawBezierLine(netHistory.up, '#6366f1', gradUp);
-
-  ctx.restore();
 }
 
 // ==========================================================================
