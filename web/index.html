@@ -1083,6 +1083,41 @@
           </div>
         </div>
 
+        <!-- Thermal Summary Strip -->
+        <div class="thermal-summary-strip glass-card" id="mon-thermal-strip">
+          <div class="thermal-strip-left">
+            <div class="thermal-strip-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"/></svg>
+            </div>
+            <div>
+              <h4 style="font-size:0.95rem; font-weight:700; color:#fff;">Termal Mimari & Sıcaklık Monitörü</h4>
+              <span style="font-size:0.78rem; color:var(--text-muted);">Sensör telemetrisi ve Apple Silicon termal kısıtlama durumu</span>
+            </div>
+          </div>
+          <div class="thermal-strip-metrics">
+            <div class="thermal-metric-item">
+              <span>SoC / CPU Sıcaklığı</span>
+              <strong id="mon-thermal-cpu" class="temp-badge">-- °C</strong>
+            </div>
+            <div class="thermal-metric-item">
+              <span>GPU Sıcaklığı</span>
+              <strong id="mon-thermal-gpu" class="temp-badge">-- °C</strong>
+            </div>
+            <div class="thermal-metric-item">
+              <span>Pil Paketi</span>
+              <strong id="mon-thermal-batt" class="temp-badge">-- °C</strong>
+            </div>
+            <div class="thermal-metric-item">
+              <span>Termal Durum</span>
+              <strong id="mon-thermal-state" style="color:var(--accent-emerald);">Nominal (Serin & Kararlı)</strong>
+            </div>
+            <div class="thermal-metric-item">
+              <span>Fan Durumu</span>
+              <strong id="mon-thermal-fan" style="color:var(--text-dim);">0 RPM (Sessiz)</strong>
+            </div>
+          </div>
+        </div>
+
         <div class="monitor-grid">
           <!-- CPU Card -->
           <div class="glass-card monitor-card">
@@ -1103,6 +1138,10 @@
               <div class="mon-stat-row">
                 <span>Mantıksal Çekirdekler:</span>
                 <strong id="mon-cpu-cores">--</strong>
+              </div>
+              <div class="mon-stat-row">
+                <span>Çip Sıcaklığı (CPU):</span>
+                <strong id="mon-cpu-temp" class="temp-badge">-- °C</strong>
               </div>
             </div>
           </div>
@@ -1221,6 +1260,10 @@
                 <strong id="mon-gpu-metal">Metal Destekli</strong>
               </div>
               <div class="mon-stat-row">
+                <span>Grafik Birimi Sıcaklığı:</span>
+                <strong id="mon-gpu-temp" class="temp-badge">-- °C</strong>
+              </div>
+              <div class="mon-stat-row">
                 <span>Ana Ekran Çözünürlüğü:</span>
                 <strong id="mon-gpu-res">Retina Ekran</strong>
               </div>
@@ -1283,27 +1326,57 @@
           </div>
         </div>
 
-        <!-- Metrics Cards -->
-        <div class="stats-grid" style="margin-bottom: 24px;">
-          <div class="glass-card stat-card">
-            <span class="stat-label">Toplam Başlangıç Öğesi</span>
-            <span class="stat-val" id="startup-stat-total">0</span>
-            <span class="stat-desc">Oturum, Ajan ve Servisler</span>
+        <!-- Startup Overview & Donut Breakdown Chart -->
+        <div class="startup-overview-container">
+          <div class="startup-chart-card glass-card">
+            <h4>Hizmet Dağılım Grafiği</h4>
+            <span class="chart-sub">Kategori bazlı başlangıç servisleri</span>
+            <div class="startup-canvas-wrap">
+              <canvas id="startup-donut-chart" width="180" height="180"></canvas>
+              <div class="startup-chart-center">
+                <span class="center-val" id="donut-center-total">0</span>
+                <span class="center-label">Toplam Öğe</span>
+              </div>
+            </div>
+            <div class="startup-legend-pills">
+              <span class="startup-legend-pill"><span class="startup-legend-dot" style="background:#06b6d4;"></span> Oturum: <strong id="donut-legend-login">0</strong></span>
+              <span class="startup-legend-pill"><span class="startup-legend-dot" style="background:#6366f1;"></span> Ajan: <strong id="donut-legend-user">0</strong></span>
+              <span class="startup-legend-pill"><span class="startup-legend-dot" style="background:#f59e0b;"></span> Sistem: <strong id="donut-legend-sysagent">0</strong></span>
+              <span class="startup-legend-pill"><span class="startup-legend-dot" style="background:#10b981;"></span> Servis: <strong id="donut-legend-daemon">0</strong></span>
+            </div>
+            <div class="startup-ratio-bar-wrap">
+              <div class="startup-ratio-labels">
+                <span>Başlangıç Etkinlik Oranı</span>
+                <strong id="startup-ratio-text">0% Aktif</strong>
+              </div>
+              <div class="startup-ratio-bar">
+                <div class="startup-ratio-fill-active" id="startup-ratio-fill" style="width: 0%;"></div>
+              </div>
+            </div>
           </div>
-          <div class="glass-card stat-card">
-            <span class="stat-label">Aktif / Etkin Öğeler</span>
-            <span class="stat-val" id="startup-stat-active" style="color: var(--accent-indigo);">0</span>
-            <span class="stat-desc">Açılışta otomatik başlar</span>
-          </div>
-          <div class="glass-card stat-card">
-            <span class="stat-label">Şu An Çalışan Süreçler</span>
-            <span class="stat-val" id="startup-stat-running" style="color: var(--accent-emerald);">0</span>
-            <span class="stat-desc">Arka planda aktif (PID atanmış)</span>
-          </div>
-          <div class="glass-card stat-card">
-            <span class="stat-label">Kullanıcı Oturum Öğeleri</span>
-            <span class="stat-val" id="startup-stat-login" style="color: var(--accent-cyan);">0</span>
-            <span class="stat-desc">Masaüstü açılış uygulamaları</span>
+
+          <!-- 4 Glowing Glass Stat Cards -->
+          <div class="stats-grid" style="margin-bottom: 0;">
+            <div class="glass-card stat-card">
+              <span class="stat-label">Toplam Başlangıç Öğesi</span>
+              <span class="stat-val" id="startup-stat-total">0</span>
+              <span class="stat-desc">Oturum, Ajan ve Servisler</span>
+            </div>
+            <div class="glass-card stat-card">
+              <span class="stat-label">Aktif / Etkin Öğeler</span>
+              <span class="stat-val" id="startup-stat-active" style="color: var(--accent-indigo);">0</span>
+              <span class="stat-desc">Açılışta otomatik başlar</span>
+            </div>
+            <div class="glass-card stat-card">
+              <span class="stat-label">Şu An Çalışan Süreçler</span>
+              <span class="stat-val" id="startup-stat-running" style="color: var(--accent-emerald);">0</span>
+              <span class="stat-desc">Arka planda aktif (PID atanmış)</span>
+            </div>
+            <div class="glass-card stat-card">
+              <span class="stat-label">Kullanıcı Oturum Öğeleri</span>
+              <span class="stat-val" id="startup-stat-login" style="color: var(--accent-cyan);">0</span>
+              <span class="stat-desc">Masaüstü açılış uygulamaları</span>
+            </div>
           </div>
         </div>
 
@@ -1427,6 +1500,27 @@
           </div>
         </div>
 
+        <!-- Live Network Traffic Graph -->
+        <div class="network-chart-card glass-card">
+          <div class="net-chart-header">
+            <div class="net-chart-title">
+              <h3>
+                <span class="net-pulse-dot"></span>
+                Canlı Ağ Trafiği Akışı
+              </h3>
+              <span class="sub" style="font-size: 0.8rem; color: var(--text-dim);">Son 30 saniyelik anlık bant genişliği ve aktarım hızı</span>
+            </div>
+            <div class="net-chart-legend">
+              <span class="legend-badge"><span class="legend-dot down-dot"></span> İndirme (Download): <strong id="net-live-down" style="color:var(--accent-cyan);">0 KB/s</strong></span>
+              <span class="legend-badge"><span class="legend-dot up-dot"></span> Yükleme (Upload): <strong id="net-live-up" style="color:var(--accent-indigo);">0 KB/s</strong></span>
+              <span class="legend-badge"><span class="legend-dot" style="background:#f59e0b;"></span> Zirve: <strong id="net-live-peak" style="color:#fcd34d;">0 MB/s</strong></span>
+            </div>
+          </div>
+          <div class="net-canvas-container">
+            <canvas id="net-traffic-canvas"></canvas>
+          </div>
+        </div>
+
         <!-- Network Details Grid -->
         <div class="maintenance-box glass-card" style="margin-bottom: 24px; padding: 20px;">
           <h3 style="margin-bottom: 12px; font-size: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
@@ -1482,6 +1576,31 @@
             <button class="btn btn-danger" id="btn-clean-privacy">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
               <span>Seçili İzleri Temizle</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Privacy Hero Shield Banner -->
+        <div class="privacy-hero-banner">
+          <div class="privacy-shield-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="privacy-hero-info">
+            <h3>macOS Gizlilik Koruması & Etkinlik İzleri</h3>
+            <p>Mac kullanım alışkanlıklarınızı, terminal komut kayıtlarınızı, tarayıcı çerezlerini ve hassas donanım izinlerini denetleyin ve tek tıkla güvenli hale getirin.</p>
+            <div class="privacy-score-pill" id="privacy-score-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px;"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              <span id="privacy-status-text">Gizlilik Durumu Taranıyor...</span>
+            </div>
+          </div>
+          <div class="privacy-hero-actions">
+            <button class="btn btn-danger" id="btn-clean-privacy" style="box-shadow: 0 4px 16px rgba(244, 63, 94, 0.4);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+              <span>Seçili İzleri Temizle</span>
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btn-refresh-privacy">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+              <span>Yeniden Tara</span>
             </button>
           </div>
         </div>

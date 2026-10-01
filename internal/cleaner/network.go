@@ -36,6 +36,8 @@ type NetworkStats struct {
 	BytesOutFormatted string              `json:"bytesOutFormatted"`
 	DownloadSpeedStr  string              `json:"downloadSpeedStr"`
 	UploadSpeedStr    string              `json:"uploadSpeedStr"`
+	DownloadSpeedBps  float64             `json:"downloadSpeedBps"`
+	UploadSpeedBps    float64             `json:"uploadSpeedBps"`
 	ActiveConnections []NetworkConnection `json:"activeConnections"`
 	ConnectionCount   int                 `json:"connectionCount"`
 }
@@ -140,10 +142,14 @@ func GetNetworkStats(ctx context.Context) (*NetworkStats, error) {
 
 			stats.DownloadSpeedStr = formatSpeed(speedIn)
 			stats.UploadSpeedStr = formatSpeed(speedOut)
+			stats.DownloadSpeedBps = speedIn
+			stats.UploadSpeedBps = speedOut
 		}
 	} else {
 		stats.DownloadSpeedStr = "0 KB/s"
 		stats.UploadSpeedStr = "0 KB/s"
+		stats.DownloadSpeedBps = 0
+		stats.UploadSpeedBps = 0
 	}
 	lastNetCheckTime = now
 	lastBytesIn = stats.BytesIn

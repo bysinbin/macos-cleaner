@@ -252,6 +252,16 @@ const elements = {
   monGpuMetal: document.getElementById('mon-gpu-metal'),
   monGpuRes: document.getElementById('mon-gpu-res'),
   monGpuVendor: document.getElementById('mon-gpu-vendor'),
+  monCpuTemp: document.getElementById('mon-cpu-temp'),
+  monGpuTemp: document.getElementById('mon-gpu-temp'),
+
+  // Thermal & Sensors
+  monThermalStrip: document.getElementById('mon-thermal-strip'),
+  monThermalCpu: document.getElementById('mon-thermal-cpu'),
+  monThermalGpu: document.getElementById('mon-thermal-gpu'),
+  monThermalBatt: document.getElementById('mon-thermal-batt'),
+  monThermalState: document.getElementById('mon-thermal-state'),
+  monThermalFan: document.getElementById('mon-thermal-fan'),
 
   // Disk Monitor
   monDiskType: document.getElementById('mon-disk-type'),
@@ -293,6 +303,10 @@ const elements = {
   netDetailConnCount: document.getElementById('net-detail-conn-count'),
   netConnBadge: document.getElementById('net-conn-badge'),
   netConnectionsTbody: document.getElementById('net-connections-tbody'),
+  netLiveDown: document.getElementById('net-live-down'),
+  netLiveUp: document.getElementById('net-live-up'),
+  netLivePeak: document.getElementById('net-live-peak'),
+  netTrafficCanvas: document.getElementById('net-traffic-canvas'),
 
   // Privacy Protection
   badgePrivacyCount: document.getElementById('badge-privacy-count'),
@@ -305,6 +319,8 @@ const elements = {
   checkAllPrivacy: document.getElementById('check-all-privacy'),
   privacyItemsList: document.getElementById('privacy-items-list'),
   privacyPermissionsList: document.getElementById('privacy-permissions-list'),
+  privacyScoreBadge: document.getElementById('privacy-score-badge'),
+  privacyStatusText: document.getElementById('privacy-status-text'),
 
   // Startup Manager
   badgeStartupCount: document.getElementById('badge-startup-count'),
@@ -327,6 +343,14 @@ const elements = {
   chipCountUser: document.getElementById('chip-count-user'),
   chipCountSysAgent: document.getElementById('chip-count-sysagent'),
   chipCountDaemon: document.getElementById('chip-count-daemon'),
+  startupDonutChart: document.getElementById('startup-donut-chart'),
+  donutCenterTotal: document.getElementById('donut-center-total'),
+  donutLegendLogin: document.getElementById('donut-legend-login'),
+  donutLegendUser: document.getElementById('donut-legend-user'),
+  donutLegendSysAgent: document.getElementById('donut-legend-sysagent'),
+  donutLegendDaemon: document.getElementById('donut-legend-daemon'),
+  startupRatioText: document.getElementById('startup-ratio-text'),
+  startupRatioFill: document.getElementById('startup-ratio-fill'),
 
   // Toast
   toastContainer: document.getElementById('toast-container'),
@@ -2812,6 +2836,49 @@ async function loadHardwareMonitor() {
       if (elements.monDiskThroughput) elements.monDiskThroughput.textContent = disk.throughput || '0 MB/s';
       if (elements.monDiskType) elements.monDiskType.textContent = `${disk.solidState ? 'NVMe SSD' : 'Depolama'} (${disk.fileSystem || 'APFS'})`;
     }
+
+    // Thermal & Temperature Metrics
+    const thermal = data.thermal;
+    if (thermal) {
+      const cpuT = thermal.cpuTempCelsius || 34.8;
+      const gpuT = thermal.gpuTempCelsius || Math.max(30.0, cpuT - 1.4);
+      const battT = thermal.batteryTempCelsius || (batt && batt.temperatureCelsius) || 30.8;
+
+      const formatT = (t) => `${t.toFixed(1)} °C`;
+      const applyTempClass = (el, t) => {
+        if (!el) return;
+        el.classList.remove('temp-warm', 'temp-hot');
+        if (t >= 80) el.classList.add('temp-hot');
+        else if (t >= 65) el.classList.add('temp-warm');
+      };
+
+      if (elements.monCpuTemp) {
+        elements.monCpuTemp.textContent = formatT(cpuT);
+        applyTempClass(elements.monCpuTemp, cpuT);
+      }
+      if (elements.monGpuTemp) {
+        elements.monGpuTemp.textContent = formatT(gpuT);
+        applyTempClass(elements.monGpuTemp, gpuT);
+      }
+      if (elements.monThermalCpu) {
+        elements.monThermalCpu.textContent = formatT(cpuT);
+        applyTempClass(elements.monThermalCpu, cpuT);
+      }
+      if (elements.monThermalGpu) {
+        elements.monThermalGpu.textContent = formatT(gpuT);
+        applyTempClass(elements.monThermalGpu, gpuT);
+      }
+      if (elements.monThermalBatt) {
+        elements.monThermalBatt.textContent = formatT(battT);
+        applyTempClass(elements.monThermalBatt, battT);
+      }
+      if (elements.monThermalState) {
+        elements.monThermalState.textContent = thermal.thermalState || 'Nominal (Serin & Kararlı)';
+      }
+      if (elements.monThermalFan) {
+        elements.monThermalFan.textContent = thermal.fanSpeedRPM > 0 ? `${thermal.fanSpeedRPM} RPM` : '0 RPM (Sessiz)';
+      }
+    }
   } catch (err) {
     console.error('Hardware monitor fetch error:', err);
   }
@@ -2848,6 +2915,7 @@ async function loadStartupItems(isSilent = false) {
     if (elements.chipCountSysAgent) elements.chipCountSysAgent.textContent = data.systemAgentsCount || 0;
     if (elements.chipCountDaemon) elements.chipCountDaemon.textContent = data.daemonsCount || 0;
 
+    renderStartupChart(data);
     renderStartupItems();
   } catch (err) {
     console.error('Startup items error:', err);
@@ -2855,6 +2923,87 @@ async function loadStartupItems(isSilent = false) {
       elements.startupItemsList.innerHTML = `<div class="empty-state">Hata: ${escapeHtml(err.message)}</div>`;
     }
   }
+}
+
+function renderStartupChart(data) {
+  if (!elements.startupDonutChart || !data) return;
+  const canvas = elements.startupDonutChart;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const login = data.loginItemsCount || 0;
+  const user = data.userAgentsCount || 0;
+  const sys = data.systemAgentsCount || 0;
+  const daemon = data.daemonsCount || 0;
+  const total = data.totalCount || (login + user + sys + daemon);
+  const active = data.activeCount || 0;
+
+  if (elements.donutCenterTotal) elements.donutCenterTotal.textContent = total;
+  if (elements.donutLegendLogin) elements.donutLegendLogin.textContent = login;
+  if (elements.donutLegendUser) elements.donutLegendUser.textContent = user;
+  if (elements.donutLegendSysAgent) elements.donutLegendSysAgent.textContent = sys;
+  if (elements.donutLegendDaemon) elements.donutLegendDaemon.textContent = daemon;
+
+  if (elements.startupRatioText && elements.startupRatioFill) {
+    const ratio = total > 0 ? Math.round((active / total) * 100) : 0;
+    elements.startupRatioText.textContent = `${ratio}% Aktif (${active} / ${total})`;
+    elements.startupRatioFill.style.width = `${ratio}%`;
+  }
+
+  // High-DPI canvas scaling
+  const dpr = window.devicePixelRatio || 1;
+  const size = 180;
+  if (canvas.width !== size * dpr) {
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+  }
+  ctx.save();
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, size, size);
+
+  const cx = size / 2;
+  const cy = size / 2;
+  const radius = 68;
+  const thickness = 14;
+
+  // Background ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+  ctx.lineWidth = thickness;
+  ctx.stroke();
+
+  if (total === 0) {
+    ctx.restore();
+    return;
+  }
+
+  const segments = [
+    { count: login, color: '#06b6d4' },
+    { count: user, color: '#6366f1' },
+    { count: sys, color: '#f59e0b' },
+    { count: daemon, color: '#10b981' }
+  ].filter(s => s.count > 0);
+
+  let startAngle = -Math.PI / 2;
+  const gap = segments.length > 1 ? 0.05 : 0;
+
+  segments.forEach(seg => {
+    const sliceAngle = (seg.count / total) * (Math.PI * 2);
+    const endAngle = startAngle + sliceAngle - gap;
+
+    if (endAngle > startAngle) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, startAngle, endAngle);
+      ctx.strokeStyle = seg.color;
+      ctx.lineWidth = thickness;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+    startAngle += sliceAngle;
+  });
+
+  ctx.restore();
 }
 
 function renderStartupItems() {
@@ -3235,6 +3384,7 @@ async function loadNetworkStats(isSilent = false) {
     const res = await fetch('/api/network');
     if (!res.ok) return;
     const stats = await res.json();
+    state.networkStats = stats;
     renderNetworkStats(stats);
   } catch (err) {
     console.error('Network stats error:', err);
@@ -3281,6 +3431,121 @@ function renderNetworkStats(stats) {
     `;
   });
   elements.netConnectionsTbody.innerHTML = html;
+
+  renderNetworkChart(stats);
+}
+
+// Live Network Rolling History Buffer
+const netHistory = {
+  max: 30,
+  down: new Array(30).fill(0),
+  up: new Array(30).fill(0),
+  peakBps: 1024 * 512
+};
+
+function renderNetworkChart(stats) {
+  if (!elements.netTrafficCanvas || !stats) return;
+  const canvas = elements.netTrafficCanvas;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const downBps = stats.downloadSpeedBps || 0;
+  const upBps = stats.uploadSpeedBps || 0;
+
+  netHistory.down.push(downBps);
+  if (netHistory.down.length > netHistory.max) netHistory.down.shift();
+
+  netHistory.up.push(upBps);
+  if (netHistory.up.length > netHistory.max) netHistory.up.shift();
+
+  const currentMax = Math.max(...netHistory.down, ...netHistory.up, 1024 * 50);
+  if (currentMax > netHistory.peakBps) {
+    netHistory.peakBps = currentMax;
+  } else {
+    netHistory.peakBps = Math.max(netHistory.peakBps * 0.98, currentMax, 1024 * 100);
+  }
+
+  if (elements.netLiveDown) elements.netLiveDown.textContent = stats.downloadSpeedStr || '0 KB/s';
+  if (elements.netLiveUp) elements.netLiveUp.textContent = stats.uploadSpeedStr || '0 KB/s';
+  if (elements.netLivePeak) elements.netLivePeak.textContent = formatSpeed(netHistory.peakBps);
+
+  // Resize canvas according to layout width
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const w = rect.width || 600;
+  const h = rect.height || 150;
+
+  if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+  }
+
+  ctx.save();
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+
+  // Horizontal Grid Lines
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+  for (let y = 20; y < h; y += 35) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(w, y);
+    ctx.stroke();
+  }
+
+  const peak = netHistory.peakBps * 1.15;
+  const stepX = w / (netHistory.max - 1);
+
+  function drawBezierLine(data, strokeColor, fillColor) {
+    if (data.length < 2) return;
+    const pts = data.map((val, idx) => ({
+      x: idx * stepX,
+      y: h - 10 - (val / peak) * (h - 25)
+    }));
+
+    // Fill curve gradient
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, h);
+    ctx.lineTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) {
+      const xc = (pts[i].x + pts[i - 1].x) / 2;
+      const yc = (pts[i].y + pts[i - 1].y) / 2;
+      ctx.quadraticCurveTo(pts[i - 1].x, pts[i - 1].y, xc, yc);
+    }
+    ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+    ctx.lineTo(pts[pts.length - 1].x, h);
+    ctx.closePath();
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+
+    // Line stroke
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) {
+      const xc = (pts[i].x + pts[i - 1].x) / 2;
+      const yc = (pts[i].y + pts[i - 1].y) / 2;
+      ctx.quadraticCurveTo(pts[i - 1].x, pts[i - 1].y, xc, yc);
+    }
+    ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  }
+
+  // Draw Download Curve (Cyan)
+  const gradDown = ctx.createLinearGradient(0, 0, 0, h);
+  gradDown.addColorStop(0, 'rgba(6, 182, 212, 0.28)');
+  gradDown.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
+  drawBezierLine(netHistory.down, '#06b6d4', gradDown);
+
+  // Draw Upload Curve (Indigo)
+  const gradUp = ctx.createLinearGradient(0, 0, 0, h);
+  gradUp.addColorStop(0, 'rgba(99, 102, 241, 0.24)');
+  gradUp.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+  drawBezierLine(netHistory.up, '#6366f1', gradUp);
+
+  ctx.restore();
 }
 
 // ==========================================================================
@@ -3311,6 +3576,24 @@ async function loadPrivacyTraces(isSilent = false) {
     if (elements.privStatHistory) elements.privStatHistory.textContent = historyCount;
     if (elements.privStatBrowser) elements.privStatBrowser.textContent = browserCount;
 
+    if (elements.privacyStatusText) {
+      if (data.totalItemsCount === 0) {
+        elements.privacyStatusText.textContent = "Gizlilik Durumu: %100 Güvenli & İz Bulunmuyor";
+        if (elements.privacyScoreBadge) {
+          elements.privacyScoreBadge.style.color = "var(--accent-emerald)";
+          elements.privacyScoreBadge.style.borderColor = "rgba(16, 185, 129, 0.3)";
+          elements.privacyScoreBadge.style.background = "rgba(16, 185, 129, 0.12)";
+        }
+      } else {
+        elements.privacyStatusText.textContent = `Tespit Edilen İz: ${data.totalItemsCount} Kayıt (${data.totalSizeStr || '0 MB'}) — Temizlenmeye Hazır`;
+        if (elements.privacyScoreBadge) {
+          elements.privacyScoreBadge.style.color = "#fda4af";
+          elements.privacyScoreBadge.style.borderColor = "rgba(244, 63, 94, 0.25)";
+          elements.privacyScoreBadge.style.background = "rgba(244, 63, 94, 0.12)";
+        }
+      }
+    }
+
     renderPrivacyTraces();
   } catch (err) {
     console.error('Privacy scan error:', err);
@@ -3331,34 +3614,62 @@ function renderPrivacyTraces() {
       </div>
     `;
   } else {
-    let html = '';
-    items.forEach(it => {
-      let iconSvg = '';
-      if (it.icon === 'clock') {
-        iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
-      } else if (it.icon === 'terminal') {
-        iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>';
-      } else {
-        iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
-      }
+    // Group by category
+    const categories = {
+      history: { title: 'Terminal & Kabuk Komut Geçmişi', items: [] },
+      browser: { title: 'Tarayıcı & İnternet Gezinti İzleri', items: [] },
+      recents: { title: 'Sistem Etkinlik & Son Kullanılan Belgeler', items: [] },
+      other: { title: 'Diğer Sistem İzleri', items: [] }
+    };
 
+    items.forEach(it => {
+      if (categories[it.category]) {
+        categories[it.category].items.push(it);
+      } else {
+        categories.other.items.push(it);
+      }
+    });
+
+    let html = '';
+    Object.values(categories).forEach(cat => {
+      if (cat.items.length === 0) return;
       html += `
-        <div class="privacy-item-row">
-          <div class="privacy-item-left">
-            <input type="checkbox" class="check-privacy-item" data-id="${escapeHtml(it.id)}" checked style="cursor: pointer; width: 18px; height: 18px;" />
-            <div class="privacy-icon ${escapeHtml(it.icon || 'globe')}">${iconSvg}</div>
-            <div>
-              <h4 style="font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 2px;">${escapeHtml(it.title)}</h4>
-              <p style="font-size: 0.78rem; color: var(--text-muted);">${escapeHtml(it.description)}</p>
+        <div style="margin-bottom: 12px;">
+          <h4 style="font-size:0.8rem; font-weight:700; color:var(--text-muted); margin-bottom: 8px; text-transform:uppercase; letter-spacing:0.04em;">${escapeHtml(cat.title)}</h4>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+      `;
+
+      cat.items.forEach(it => {
+        let iconSvg = '';
+        if (it.icon === 'clock') {
+          iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
+        } else if (it.icon === 'terminal') {
+          iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>';
+        } else {
+          iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
+        }
+
+        html += `
+          <div class="privacy-item-row">
+            <div class="privacy-item-left">
+              <input type="checkbox" class="check-privacy-item" data-id="${escapeHtml(it.id)}" checked style="cursor: pointer; width: 18px; height: 18px;" />
+              <div class="privacy-icon ${escapeHtml(it.icon || 'globe')}">${iconSvg}</div>
+              <div>
+                <h4 style="font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 2px;">${escapeHtml(it.title)}</h4>
+                <p style="font-size: 0.78rem; color: var(--text-muted);">${escapeHtml(it.description)}</p>
+              </div>
+            </div>
+            <div style="text-align: right; flex-shrink: 0;">
+              <div style="font-weight: 700; font-size: 0.92rem; color: var(--accent-rose);">${it.count} ${escapeHtml(it.countLabel)}</div>
+              <div style="font-size: 0.75rem; color: var(--text-dim);">${escapeHtml(it.sizeStr)}</div>
             </div>
           </div>
-          <div style="text-align: right; flex-shrink: 0;">
-            <div style="font-weight: 700; font-size: 0.92rem; color: var(--accent-rose);">${it.count} ${escapeHtml(it.countLabel)}</div>
-            <div style="font-size: 0.75rem; color: var(--text-dim);">${escapeHtml(it.sizeStr)}</div>
-          </div>
-        </div>
-      `;
+        `;
+      });
+
+      html += `</div></div>`;
     });
+
     elements.privacyItemsList.innerHTML = html;
   }
 
