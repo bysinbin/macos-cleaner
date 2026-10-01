@@ -285,16 +285,40 @@ const TAB_CONFIG = {
 
 let monitorInterval = null;
 
-// Initialize Application
-document.addEventListener('DOMContentLoaded', () => {
-  checkAuthStatus();
-  setupNavigation();
-  setupEventHandlers();
+// Global fetch wrapper to handle session expiration (401)
+const _originalFetch = window.fetch;
+window.fetch = async (...args) => {
+  const res = await _originalFetch(...args);
+  if (res.status === 401) {
+    const url = args[0] ? args[0].toString() : '';
+    if (!url.includes('/api/auth/')) {
+      if (elements.authModal && !elements.authModal.open) {
+        elements.authModal.showModal();
+      }
+      if (elements.authStatusBar) elements.authStatusBar.style.display = 'none';
+    }
+  }
+  return res;
+};
+
+// Centralized initial data fetcher (runs only after authentication)
+function initializeDashboardData() {
   fetchSystemStats();
   startGlobalScan();
   startLeftoversScan(true); // background initial scan for badge
   loadSmartCare(); // Initial smart care health scan
   loadStartupItems(true); // background initial scan for startup badge
+}
+
+// Initialize Application
+document.addEventListener('DOMContentLoaded', async () => {
+  setupNavigation();
+  setupEventHandlers();
+
+  const isAuth = await checkAuthStatus();
+  if (isAuth) {
+    initializeDashboardData();
+  }
 });
 
 // Setup Tab Navigation
@@ -2326,30 +2350,36 @@ function executeSmartCareClean() {
 async function checkAuthStatus() {
   try {
     const res = await fetch('/api/auth/status');
-    if (!res.ok) return;
+    if (!res.ok) return false;
     const data = await res.json();
     state.authStatus = data;
 
-    if (data.enabled) {
+    const authEnabled = (data.authEnabled !== undefined) ? data.authEnabled : data.enabled;
+
+    if (authEnabled) {
       if (!data.authenticated) {
         if (elements.authModal && !elements.authModal.open) {
           elements.authModal.showModal();
         }
         if (elements.authStatusBar) elements.authStatusBar.style.display = 'none';
+        return false;
       } else {
         if (elements.authModal && elements.authModal.open) {
           elements.authModal.close();
         }
         if (elements.authStatusBar) elements.authStatusBar.style.display = 'flex';
+        return true;
       }
     } else {
       if (elements.authModal && elements.authModal.open) {
         elements.authModal.close();
       }
       if (elements.authStatusBar) elements.authStatusBar.style.display = 'none';
+      return true;
     }
   } catch (err) {
     console.error('Auth check error:', err);
+    return false;
   }
 }
 
@@ -2375,11 +2405,7 @@ async function handleLoginSubmit() {
       elements.authPasswordInput.value = '';
       if (elements.authStatusBar) elements.authStatusBar.style.display = 'flex';
       showToast('Giriş başarılı! Oturum açıldı.', 'success');
-      // Refresh system storage and stats
-      fetchSystemStats();
-      startGlobalScan();
-      startLeftoversScan(true);
-      loadSmartCare();
+      initializeDashboardData();
     } else {
       elements.authErrorMsg.textContent = data.error || 'Geçersiz şifre.';
       elements.authErrorMsg.style.display = 'block';

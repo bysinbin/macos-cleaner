@@ -1,7 +1,9 @@
 package server
 
 import (
+	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"embed"
 	"encoding/hex"
 	"fmt"
@@ -10,7 +12,9 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -100,24 +104,43 @@ func (s *Server) securityMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) generateToken() string {
-	b := make([]byte, 24)
+func (s *Server) getStableSecret() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "disk-cleaner-fallback-secret-2026"
+	}
+	secretFile := filepath.Join(home, ".disk-cleaner-secret")
+	data, err := os.ReadFile(secretFile)
+	if err == nil && len(data) >= 32 {
+		return string(data)
+	}
+	b := make([]byte, 32)
 	_, _ = rand.Read(b)
-	token := hex.EncodeToString(b)
-	s.sessionsMutex.Lock()
-	s.sessions[token] = time.Now().Add(24 * time.Hour)
-	s.sessionsMutex.Unlock()
-	return token
+	sec := hex.EncodeToString(b)
+	_ = os.WriteFile(secretFile, []byte(sec), 0600)
+	return sec
+}
+
+func (s *Server) generateToken() string {
+	cfg := config.GetConfig()
+	now := time.Now().Unix()
+	payload := strconv.FormatInt(now, 10)
+	mac := hmac.New(sha256.New, []byte(cfg.Auth.Password+":"+s.getStableSecret()))
+	mac.Write([]byte(payload))
+	sig := hex.EncodeToString(mac.Sum(nil))
+	return fmt.Sprintf("%s.%s", payload, sig)
 }
 
 func (s *Server) revokeToken(token string) {
-	s.sessionsMutex.Lock()
-	delete(s.sessions, token)
-	s.sessionsMutex.Unlock()
+	// Stateless tokens are invalidated by client cookie clearing or password change
 }
 
 func (s *Server) isAuthenticated(r *http.Request) bool {
-	// Check cookie
+	cfg := config.GetConfig()
+	if !cfg.Auth.Enabled {
+		return true
+	}
+
 	cookie, err := r.Cookie("dc_token")
 	var token string
 	if err == nil && cookie != nil {
@@ -133,14 +156,26 @@ func (s *Server) isAuthenticated(r *http.Request) bool {
 		return false
 	}
 
-	s.sessionsMutex.RLock()
-	exp, exists := s.sessions[token]
-	s.sessionsMutex.RUnlock()
-
-	if !exists || time.Now().After(exp) {
+	parts := strings.Split(token, ".")
+	if len(parts) != 2 {
 		return false
 	}
-	return true
+
+	createdUnix, err := strconv.ParseInt(parts[0], 10, 64)
+	if err != nil {
+		return false
+	}
+
+	// 24-hour expiration window
+	if time.Since(time.Unix(createdUnix, 0)) > 24*time.Hour {
+		return false
+	}
+
+	mac := hmac.New(sha256.New, []byte(cfg.Auth.Password+":"+s.getStableSecret()))
+	mac.Write([]byte(parts[0]))
+	expectedSig := hex.EncodeToString(mac.Sum(nil))
+
+	return hmac.Equal([]byte(parts[1]), []byte(expectedSig))
 }
 
 // OpenBrowser opens the default web browser on macOS
