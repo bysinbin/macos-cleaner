@@ -1,0 +1,246 @@
+package server
+
+import (
+	"crypto/rand"
+	"embed"
+	"encoding/hex"
+	"fmt"
+	"io/fs"
+	"net"
+	"net/http"
+	"os"
+	"os/exec"
+	"runtime"
+	"strings"
+	"sync"
+	"time"
+
+	"disk-cleaner/internal/config"
+)
+
+// Server handles the HTTP dashboard and API
+type Server struct {
+	port          int
+	embeddedFS    embed.FS
+	mux           *http.ServeMux
+	sessions      map[string]time.Time
+	sessionsMutex sync.RWMutex
+}
+
+// NewServer creates a new Server instance
+func NewServer(port int, embeddedFS embed.FS) *Server {
+	s := &Server{
+		port:       port,
+		embeddedFS: embeddedFS,
+		mux:        http.NewServeMux(),
+		sessions:   make(map[string]time.Time),
+	}
+	s.routes()
+	return s
+}
+
+// Start launches the HTTP server with localhost-only check and optional auth middleware
+func (s *Server) Start() error {
+	cfg := config.GetConfig()
+	bindHost := cfg.BindAddress
+	if bindHost == "" {
+		bindHost = "127.0.0.1"
+	}
+
+	addr := fmt.Sprintf("%s:%d", bindHost, s.port)
+	srv := &http.Server{
+		Addr:         addr,
+		Handler:      s.securityMiddleware(s.mux),
+		ReadTimeout:  120 * time.Second,
+		WriteTimeout: 120 * time.Second,
+	}
+
+	fmt.Printf("\n🔒 Güvenlik: Yalnızca localhost (%s) üzerinden erişilebilir.\n", bindHost)
+	if cfg.Auth.Enabled {
+		fmt.Printf("🔑 Giriş Koruması: AKTİF (Şifreli oturum gerekiyor)\n")
+	} else {
+		fmt.Printf("🔓 Giriş Koruması: KAPALI\n")
+	}
+	fmt.Printf("🚀 Disk Cleaner Dashboard hazır: http://%s\n", addr)
+	return srv.ListenAndServe()
+}
+
+// Security middleware enforcing localhost-only binding and authentication
+func (s *Server) securityMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// 1. Verify localhost-only access (reject any external incoming IPs)
+		host, _, err := net.SplitHostPort(r.RemoteAddr)
+		if err == nil {
+			ip := net.ParseIP(host)
+			if ip != nil && !ip.IsLoopback() {
+				http.Error(w, "Forbidden: Yalnızca localhost üzerinden erişilebilir.", http.StatusForbidden)
+				return
+			}
+		}
+
+		// 2. Auth protection check
+		cfg := config.GetConfig()
+		if cfg.Auth.Enabled {
+			// Allow auth endpoints and static web assets without auth
+			isAuthEndpoint := strings.HasPrefix(r.URL.Path, "/api/auth/")
+			isAPIEndpoint := strings.HasPrefix(r.URL.Path, "/api/")
+
+			if isAPIEndpoint && !isAuthEndpoint {
+				if !s.isAuthenticated(r) {
+					writeJSON(w, http.StatusUnauthorized, map[string]any{
+						"error":        "Yetkilendirme gerekli. Lütfen şifrenizi girin.",
+						"authRequired": true,
+					})
+					return
+				}
+			}
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (s *Server) generateToken() string {
+	b := make([]byte, 24)
+	_, _ = rand.Read(b)
+	token := hex.EncodeToString(b)
+	s.sessionsMutex.Lock()
+	s.sessions[token] = time.Now().Add(24 * time.Hour)
+	s.sessionsMutex.Unlock()
+	return token
+}
+
+func (s *Server) revokeToken(token string) {
+	s.sessionsMutex.Lock()
+	delete(s.sessions, token)
+	s.sessionsMutex.Unlock()
+}
+
+func (s *Server) isAuthenticated(r *http.Request) bool {
+	// Check cookie
+	cookie, err := r.Cookie("dc_token")
+	var token string
+	if err == nil && cookie != nil {
+		token = cookie.Value
+	}
+	if token == "" {
+		authHeader := r.Header.Get("Authorization")
+		if strings.HasPrefix(authHeader, "Bearer ") {
+			token = strings.TrimPrefix(authHeader, "Bearer ")
+		}
+	}
+	if token == "" {
+		return false
+	}
+
+	s.sessionsMutex.RLock()
+	exp, exists := s.sessions[token]
+	s.sessionsMutex.RUnlock()
+
+	if !exists || time.Now().After(exp) {
+		return false
+	}
+	return true
+}
+
+// OpenBrowser opens the default web browser on macOS
+func OpenBrowser(url string) {
+	time.Sleep(200 * time.Millisecond)
+	if runtime.GOOS == "darwin" {
+		_ = exec.Command("open", url).Start()
+	}
+}
+
+func (s *Server) routes() {
+	// Authentication endpoints
+	s.mux.HandleFunc("/api/auth/status", s.handleAuthStatus)
+	s.mux.HandleFunc("/api/auth/login", s.handleAuthLogin)
+	s.mux.HandleFunc("/api/auth/logout", s.handleAuthLogout)
+
+	// Core API routes
+	s.mux.HandleFunc("/api/system", s.handleSystemStats)
+	s.mux.HandleFunc("/api/scan", s.handleScan)
+	s.mux.HandleFunc("/api/clean", s.handleClean)
+	s.mux.HandleFunc("/api/nodemodules", s.handleNodeModulesScan)
+	s.mux.HandleFunc("/api/nodemodules/clean", s.handleNodeModulesClean)
+	s.mux.HandleFunc("/api/largefiles", s.handleLargeFilesScan)
+	s.mux.HandleFunc("/api/largefiles/delete", s.handleLargeFilesDelete)
+	s.mux.HandleFunc("/api/tree", s.handleDirTree)
+	s.mux.HandleFunc("/api/duplicates", s.handleDuplicates)
+	s.mux.HandleFunc("/api/duplicates/delete", s.handleDuplicatesDelete)
+	s.mux.HandleFunc("/api/leftovers", s.handleLeftoversScan)
+	s.mux.HandleFunc("/api/leftovers/clean", s.handleLeftoversClean)
+	s.mux.HandleFunc("/api/reveal", s.handleReveal)
+
+	// App Uninstaller
+	s.mux.HandleFunc("/api/apps", s.handleAppsScan)
+	s.mux.HandleFunc("/api/apps/uninstall", s.handleAppUninstall)
+
+	// Apple & System Data
+	s.mux.HandleFunc("/api/apple", s.handleAppleScan)
+	s.mux.HandleFunc("/api/apple/snapshots/delete", s.handleAppleSnapshotsDelete)
+	s.mux.HandleFunc("/api/apple/backups/delete", s.handleAppleBackupsDelete)
+	s.mux.HandleFunc("/api/apple/simulators/clean", s.handleAppleSimulatorsClean)
+
+	// Media & Messages Attachments
+	s.mux.HandleFunc("/api/media/attachments", s.handleMediaAttachmentsScan)
+	s.mux.HandleFunc("/api/media/attachments/clean", s.handleMediaAttachmentsClean)
+
+	// Downloads Organizer
+	s.mux.HandleFunc("/api/downloads", s.handleDownloadsScan)
+	s.mux.HandleFunc("/api/downloads/clean", s.handleDownloadsClean)
+
+	// Browser Caches
+	s.mux.HandleFunc("/api/browsers", s.handleBrowsersScan)
+	s.mux.HandleFunc("/api/browsers/clean", s.handleBrowsersClean)
+
+	// Smart Care & Health
+	s.mux.HandleFunc("/api/smartcare", s.handleSmartCareScan)
+	s.mux.HandleFunc("/api/smartcare/clean", s.handleSmartCareClean)
+
+	// Maintenance Toolkit (Image 2: Free Up RAM, Flush DNS, Speed Up Mail, etc.)
+	s.mux.HandleFunc("/api/maintenance", s.handleMaintenanceList)
+	s.mux.HandleFunc("/api/maintenance/run", s.handleMaintenanceRun)
+
+	// File Shredder (Image 1: Shredder)
+	s.mux.HandleFunc("/api/shred", s.handleShred)
+
+	// Hardware Resource Monitor (Image 3: CPU, RAM, Uptime)
+	s.mux.HandleFunc("/api/monitor", s.handleHardwareMonitor)
+
+	// Static UI assets from embedded FS
+	sub, err := fs.Sub(s.embeddedFS, "web")
+	if err != nil {
+		s.mux.Handle("/", http.FileServer(http.Dir("./web")))
+		return
+	}
+	s.mux.Handle("/", http.FileServer(http.FS(sub)))
+}
+
+// Helper to write JSON response
+func writeJSON(w http.ResponseWriter, status int, data any) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(status)
+	if data != nil {
+		_ = jsonEncode(w, data)
+	}
+}
+
+// Helper to set up SSE headers
+func setupSSE(w http.ResponseWriter) (http.Flusher, bool) {
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "SSE not supported", http.StatusInternalServerError)
+		return nil, false
+	}
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	return flusher, true
+}
+
+func getCurrentUserHome() string {
+	h, _ := os.UserHomeDir()
+	return h
+}

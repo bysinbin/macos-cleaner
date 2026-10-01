@@ -1,0 +1,19 @@
+# Binaries
+disk-cleaner
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+*~

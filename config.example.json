@@ -1,0 +1,8 @@
+{
+  "port": 8089,
+  "bindAddress": "127.0.0.1",
+  "auth": {
+    "enabled": true,
+    "password": "your-secure-password"
+  }
+}

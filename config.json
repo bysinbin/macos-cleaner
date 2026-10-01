@@ -1,0 +1,9 @@
+{
+  "port": 8089,
+  "bindAddress": "127.0.0.1",
+  "auth": {
+    "enabled": true,
+    "password": "admin",
+    "sessionSecret": "c6ed99ee15e6b92d2c41012f71ee1140"
+  }
+}

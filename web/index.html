@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="macOS için modern, yüksek performanslı Go tabanlı disk temizleyici ve analiz aracı.">
+  <title>Disk Cleaner Pro — macOS Disk & Geliştirici Temizleyici</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="dark-theme">
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h2>DiskCleaner</h2>
+          <span class="badge-pro">macOS Pro</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu" aria-label="Ana Menü">
+        <div class="nav-section-label">TEMİZLİK & SİSTEM</div>
+
+        <button class="nav-item active" data-tab="overview" id="nav-tab-overview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+          <span>Genel Bakış & Akıllı Bakım</span>
+        </button>
+
+        <button class="nav-item" data-tab="apps" id="nav-tab-apps">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
+          <span>Uygulama Kaldırıcı</span>
+        </button>
+
+        <button class="nav-item" data-tab="browsers" id="nav-tab-browsers">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-.778.099-1.533.284-2.253"/></svg>
+          <span>Tarayıcı Önbellekleri</span>
+        </button>
+
+        <button class="nav-item" data-tab="downloads" id="nav-tab-downloads">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+          <span>İndirilenler Analizi</span>
+        </button>
+
+        <button class="nav-item" data-tab="leftovers" id="nav-tab-leftovers">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+          <span>Artık Dosyalar</span>
+          <span class="nav-badge" id="badge-leftovers-count">0</span>
+        </button>
+
+        <div class="nav-section-label">GELİŞTİRİCİ & APPLE</div>
+
+        <button class="nav-item" data-tab="developer" id="nav-tab-developer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"/></svg>
+          <span>Geliştirici Önbellekleri</span>
+          <span class="nav-badge" id="badge-dev-count">0</span>
+        </button>
+
+        <button class="nav-item" data-tab="nodemodules" id="nav-tab-nodemodules">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+          <span>node_modules Avcısı</span>
+        </button>
+
+        <button class="nav-item" data-tab="system" id="nav-tab-system">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3.75H6.912a2.25 2.25 0 00-2.15 1.586L2.636 12.3c-.092.308-.136.63-.136.953v5.497A2.25 2.25 0 004.75 21h14.5a2.25 2.25 0 002.25-2.25v-5.497c0-.323-.044-.645-.136-.953l-2.126-6.964A2.25 2.25 0 0017.088 3.75H15M9 3.75v3.75a3 3 0 006 0V3.75m-6 0h6"/></svg>
+          <span>Sistem & Uygulamalar</span>
+          <span class="nav-badge" id="badge-sys-count">0</span>
+        </button>
+
+        <button class="nav-item" data-tab="apple" id="nav-tab-apple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/></svg>
+          <span>Apple & Sistem Verisi</span>
+        </button>
+
+        <button class="nav-item" data-tab="media" id="nav-tab-media">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.377 3.746 2.25 5.14 2.25 6.741v6.018z"/></svg>
+          <span>İletişim & Ekler</span>
+        </button>
+
+        <div class="nav-section-label">DERİN ANALİZ</div>
+
+        <button class="nav-item" data-tab="largefiles" id="nav-tab-largefiles">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6"/></svg>
+          <span>Büyük Dosyalar</span>
+        </button>
+
+        <button class="nav-item" data-tab="dirtree" id="nav-tab-dirtree">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776"/></svg>
+          <span>Derin Dizin Analizi</span>
+        </button>
+
+        <button class="nav-item" data-tab="duplicates" id="nav-tab-duplicates">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75"/></svg>
+          <span>Yinelenen Dosyalar</span>
+        </button>
+
+        <div class="nav-section-label">HIZLANDIRMA & GÜVENLİK</div>
+
+        <button class="nav-item" data-tab="maintenance" id="nav-tab-maintenance">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233l2.846-2.846a1.5 1.5 0 00-2.122-2.122l-2.846 2.846m-1.478 2.122l-2.122 2.122"/></svg>
+          <span>Sistem Bakımı</span>
+        </button>
+
+        <button class="nav-item" data-tab="shredder" id="nav-tab-shredder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+          <span>Dosya Öğütücü</span>
+        </button>
+
+        <button class="nav-item" data-tab="monitor" id="nav-tab-monitor">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+          <span>Donanım Monitörü</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="auth-bar" id="auth-status-bar" style="display: none;">
+          <div class="auth-info">
+            <span class="auth-dot"></span>
+            <span class="auth-label">Oturum Açık</span>
+          </div>
+          <button class="btn btn-secondary btn-xs" id="btn-logout" title="Oturumu Kapat">Çıkış</button>
+        </div>
+
+        <div class="disk-mini-card">
+          <div class="disk-mini-header">
+            <span class="label">Kullanılabilir Alan</span>
+            <span class="val" id="mini-free-space">-- GB</span>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="mini-disk-fill" style="width: 0%"></div>
+          </div>
+          <span class="disk-meta" id="mini-disk-detail">Hesaplanıyor...</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div class="top-title">
+          <h1 id="page-heading">Sistem Genel Bakışı</h1>
+          <p id="page-subheading">Depolama analizi ve hızlı temizleme merkezi</p>
+        </div>
+
+        <div class="top-actions">
+          <label class="toggle-control" title="Simülasyon Modu: Gerçekten silmeden ne kadar yer açılacağını test edin">
+            <input type="checkbox" id="toggle-dry-run">
+            <span class="toggle-slider"></span>
+            <span class="toggle-label">Test (Dry Run) Modu</span>
+          </label>
+
+          <label class="toggle-control" title="Finder Çöp Kutusuna Taşı (Kalıcı silmek yerine)">
+            <input type="checkbox" id="toggle-trash-mode" checked>
+            <span class="toggle-slider"></span>
+            <span class="toggle-label">Çöp Kutusuna Taşı</span>
+          </label>
+
+          <button class="btn btn-secondary" id="btn-global-scan" title="Tüm alanları yeniden tara">
+            <svg class="icon-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+            <span>Sistemi Tara</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Scanning Progress Banner (active when scanning) -->
+      <div class="scan-banner" id="scan-banner" style="display: none;">
+        <div class="banner-pulse"></div>
+        <div class="banner-content">
+          <div class="banner-text">
+            <strong id="scan-banner-title">Disk Taranıyor...</strong>
+            <span id="scan-banner-desc">Dosya indeksleri taranıyor</span>
+          </div>
+          <div class="banner-stats">
+            <span id="scan-banner-items">0 dosya</span>
+            <span class="stat-pill" id="scan-banner-found">0 MB bulundu</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 1: OVERVIEW -->
+      <section class="tab-pane active" id="pane-overview">
+        <!-- Critical Storage Warning Banner (shown when disk usage > 85%) -->
+        <div class="storage-alert-banner" id="storage-threshold-banner" style="display: none;">
+          <div class="alert-icon-pulse">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+          </div>
+          <div class="alert-details">
+            <h4 id="alert-banner-title">⚠️ Kritik Disk Doluluğu Uyarısı</h4>
+            <p id="alert-banner-desc">Diskiniz kritik seviyede dolu. Sistem performansını korumak için önerilen akıllı temizliği başlatın.</p>
+          </div>
+          <button class="btn btn-warning btn-sm" id="btn-alert-smart-clean">
+            <span>Akıllı Temizliği Başlat</span>
+          </button>
+        </div>
+
+        <!-- Hero Storage Cards Grid -->
+        <div class="hero-grid">
+          <!-- Disk Ring Card -->
+          <div class="glass-card disk-status-card">
+            <div class="card-glow"></div>
+            <div class="disk-chart-container">
+              <svg class="storage-donut" viewBox="0 0 200 200">
+                <circle class="donut-bg" cx="100" cy="100" r="80"></circle>
+                <circle class="donut-fill" id="donut-disk-fill" cx="100" cy="100" r="80" stroke-dasharray="502.65" stroke-dashoffset="502.65"></circle>
+              </svg>
+              <div class="donut-center-info">
+                <span class="pct-number" id="disk-used-pct">0%</span>
+                <span class="pct-label">Dolu</span>
+              </div>
+            </div>
+
+            <div class="storage-breakdown">
+              <h3>Macintosh HD Depolama Durumu</h3>
+              <div class="storage-metrics">
+                <div class="metric-item">
+                  <span class="dot dot-used"></span>
+                  <div class="metric-info">
+                    <span class="metric-name">Kullanılan Alan</span>
+                    <strong class="metric-val" id="metric-used-space">-- GB</strong>
+                  </div>
+                </div>
+                <div class="metric-item">
+                  <span class="dot dot-free"></span>
+                  <div class="metric-info">
+                    <span class="metric-name">Boş Alan</span>
+                    <strong class="metric-val" id="metric-free-space">-- GB</strong>
+                  </div>
+                </div>
+                <div class="metric-item">
+                  <span class="dot dot-total"></span>
+                  <div class="metric-info">
+                    <span class="metric-name">Toplam Disk Kapasitesi</span>
+                    <strong class="metric-val" id="metric-total-space">-- GB</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Clean Banner Card -->
+          <div class="glass-card quick-clean-card">
+            <div class="quick-clean-glow"></div>
+            <div class="quick-clean-badge">Önerilen Eylem</div>
+            <h2>Tek Tıkla Güvenli Temizlik</h2>
+            <p class="quick-clean-desc">
+              Xcode önizlemeleri, Gradle/npm önbellekleri, eski güncelleme artıkları ve geçici dosyalar güvenle temizlenebilir.
+            </p>
+
+            <div class="cleanable-summary-box">
+              <div class="summary-amount">
+                <span class="cleanable-big" id="quick-clean-size">0.0 GB</span>
+                <span class="cleanable-label">Gereksiz Dosya Temizlenebilir</span>
+              </div>
+              <button class="btn btn-primary btn-large" id="btn-quick-clean">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                <span>Önerilenleri Şimdi Temizle</span>
+              </button>
+            </div>
+
+            <div class="quick-clean-checklist">
+              <div class="check-pill">✓ Xcode SwiftUI Previews</div>
+              <div class="check-pill">✓ Gradle & npm Cache</div>
+              <div class="check-pill">✓ Homebrew Şişeleri</div>
+              <div class="check-pill">✓ VS Code Güncelleme Artıkları</div>
+              <div class="check-pill">✓ Kullanıcı Logları</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category Overview Grid -->
+        <div class="section-title-wrap">
+          <h2>Temizlik Kategorileri Özeti</h2>
+          <span class="sub">Kategoriye tıklayarak detayları yönetin</span>
+        </div>
+
+        <div class="category-summary-grid">
+          <div class="glass-card cat-card" data-goto="developer">
+            <div class="cat-header">
+              <div class="cat-icon cat-dev">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"/></svg>
+              </div>
+              <span class="cat-size-badge" id="overview-dev-size">0 MB</span>
+            </div>
+            <h3>Geliştirici Önbellekleri</h3>
+            <p>Xcode Previews, DerivedData, Gradle, Homebrew, Go derleme önbellekleri.</p>
+            <div class="cat-footer">
+              <span class="link-label">İncele ve Yönet →</span>
+            </div>
+          </div>
+
+          <div class="glass-card cat-card" data-goto="system">
+            <div class="cat-header">
+              <div class="cat-icon cat-sys">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3.75H6.912a2.25 2.25 0 00-2.15 1.586L2.636 12.3c-.092.308-.136.63-.136.953v5.497A2.25 2.25 0 004.75 21h14.5a2.25 2.25 0 002.25-2.25v-5.497c0-.323-.044-.645-.136-.953l-2.126-6.964A2.25 2.25 0 0017.088 3.75H15M9 3.75v3.75a3 3 0 006 0V3.75m-6 0h6"/></svg>
+              </div>
+              <span class="cat-size-badge" id="overview-sys-size">0 MB</span>
+            </div>
+            <h3>Sistem & Uygulamalar</h3>
+            <p>VS Code artıkları, Google önbellekleri, log dosyaları, çöp kutusu.</p>
+            <div class="cat-footer">
+              <span class="link-label">İncele ve Yönet →</span>
+            </div>
+          </div>
+
+          <div class="glass-card cat-card" data-goto="nodemodules">
+            <div class="cat-header">
+              <div class="cat-icon cat-node">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+              </div>
+              <span class="cat-size-badge" id="overview-node-size">Tara</span>
+            </div>
+            <h3>node_modules Klasörleri</h3>
+            <p>Eski ve aktif olmayan JavaScript/TypeScript projelerindeki devasa bağımlılıklar.</p>
+            <div class="cat-footer">
+              <span class="link-label">Proje Klasörlerini Tara →</span>
+            </div>
+          </div>
+
+          <div class="glass-card cat-card" data-goto="largefiles">
+            <div class="cat-header">
+              <div class="cat-icon cat-files">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+              </div>
+              <span class="cat-size-badge">Filtrele</span>
+            </div>
+            <h3>Büyük & Eski Dosyalar</h3>
+            <p>İndirilenler, videolar, disk kalıpları (.dmg, .iso) ve büyük arşivler.</p>
+            <div class="cat-footer">
+              <span class="link-label">Dosyaları Listele →</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: DEVELOPER CACHES -->
+      <section class="tab-pane" id="pane-developer">
+        <div class="pane-toolbar">
+          <div class="toolbar-info">
+            <h2>Geliştirici Önbellekleri</h2>
+            <p>Xcode, derleyiciler ve paket yöneticilerinin ürettiği geçici dosyalar</p>
+          </div>
+          <div class="toolbar-buttons">
+            <button class="btn btn-secondary btn-sm" id="btn-select-all-dev">Tümünü Seç</button>
+            <button class="btn btn-primary" id="btn-clean-selected-dev">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+              <span>Seçilenleri Temizle (<span id="dev-selected-size">0 MB</span>)</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="targets-list" id="dev-targets-list">
+          <!-- Dynamic target cards rendered by JS -->
+          <div class="loading-state">Taranıyor...</div>
+        </div>
+      </section>
+
+      <!-- TAB 3: SYSTEM & APP JUNK -->
+      <section class="tab-pane" id="pane-system">
+        <div class="pane-toolbar">
+          <div class="toolbar-info">
+            <h2>Sistem ve Uygulama Artıkları</h2>
+            <p>Uygulama güncelleme indiricileri, loglar ve dinamik önbellekler</p>
+          </div>
+          <div class="toolbar-buttons">
+            <button class="btn btn-secondary btn-sm" id="btn-select-all-sys">Tümünü Seç</button>
+            <button class="btn btn-primary" id="btn-clean-selected-sys">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+              <span>Seçilenleri Temizle (<span id="sys-selected-size">0 MB</span>)</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="targets-list" id="sys-targets-list">
+          <div class="loading-state">Taranıyor...</div>
+        </div>
+
+        <!-- Dynamic App Caches Section -->
+        <div class="section-title-wrap" style="margin-top: 32px;">
+          <h2>Diğer Tespit Edilen Büyük Uygulama Önbellekleri</h2>
+          <span class="sub">~/Library/Caches altındaki 10MB üzeri diğer uygulamalar</span>
+        </div>
+        <div class="targets-list" id="dynamic-caches-list">
+          <div class="loading-state">Taranıyor...</div>
+        </div>
+      </section>
+
+      <!-- TAB 4: NODE_MODULES HUNTER -->
+      <section class="tab-pane" id="pane-nodemodules">
+        <div class="pane-toolbar">
+          <div class="toolbar-info">
+            <h2>node_modules Avcısı</h2>
+            <p>Projelerinizi tarayın ve kullanmadığınız devasa bağımlılık klasörlerini kaldırın</p>
+          </div>
+          <div class="toolbar-buttons">
+            <button class="btn btn-secondary" id="btn-scan-node-modules">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+              <span>node_modules Klasörlerini Tara</span>
+            </button>
+            <button class="btn btn-primary" id="btn-clean-selected-node" disabled>
+              <span>Seçilen node_modules'ları Sil (<span id="node-selected-size">0 MB</span>)</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="custom-path-bar">
+          <label for="input-node-path">Özel Proje Dizini (İsteğe Bağlı):</label>
+          <div class="input-with-button">
+            <input type="text" id="input-node-path" placeholder="Örn: ~/Desktop/yazılım veya boş bırakıp standart dizinleri tara">
+            <button class="btn btn-secondary btn-sm" id="btn-apply-node-path">Dizini Tara</button>
+          </div>
+        </div>
+
+        <div class="table-container glass-card">
+          <table class="data-table" id="table-node-modules">
+            <thead>
+              <tr>
+                <th width="40"><input type="checkbox" id="th-check-all-node"></th>
+                <th>Proje Adı</th>
+                <th>Konum</th>
+                <th>Son Değişiklik</th>
+                <th>Boyut</th>
+                <th width="100">İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-node-modules">
+              <tr>
+                <td colspan="6" class="empty-state">
+                  <div class="empty-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+                    <p>Projelerdeki node_modules klasörlerini keşfetmek için "node_modules Klasörlerini Tara" butonuna tıklayın.</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 5: LARGE & OLD FILES -->
+      <section class="tab-pane" id="pane-largefiles">
+        <div class="pane-toolbar">
+          <div class="toolbar-info">
+            <h2>Büyük ve Eski Dosya Analizi</h2>
+            <p>Yer kaplayan video, kalıp ve arşiv dosyalarını bulun</p>
+          </div>
+          <div class="toolbar-buttons">
+            <button class="btn btn-secondary" id="btn-scan-large-files">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+              <span>Filtrelere Göre Dosya Ara</span>
+            </button>
+            <button class="btn btn-primary" id="btn-clean-selected-files" disabled>
+              <span>Seçilen Dosyaları Sil (<span id="files-selected-size">0 MB</span>)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Controls Bar -->
+        <div class="filter-controls-bar glass-card">
+          <div class="filter-group">
+            <label for="select-min-size">Minimum Boyut:</label>
+            <select id="select-min-size" class="custom-select">
+              <option value="50">50 MB+</option>
+              <option value="100" selected>100 MB+</option>
+              <option value="500">500 MB+</option>
+              <option value="1024">1 GB+</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="select-category">Dosya Türü:</label>
+            <select id="select-category" class="custom-select">
+              <option value="all">Tüm Türler</option>
+              <option value="video">Videolar (.mp4, .mov, .mkv)</option>
+              <option value="installer">Kalıplar & Kurucular (.dmg, .pkg, .iso)</option>
+              <option value="archive">Arşivler (.zip, .tar, .gz)</option>
+              <option value="document">Belgeler & Çizimler (.pdf, .psd)</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="select-age">Dosya Yaşı:</label>
+            <select id="select-age" class="custom-select">
+              <option value="0">Tüm Tarihler</option>
+              <option value="30">30 günden eski</option>
+              <option value="90">90 günden eski</option>
+              <option value="180">6 aydan eski</option>
+              <option value="365">1 yıldan eski</option>
+            </select>
+          </div>
+
+          <div class="filter-group" style="flex: 1;">
+            <label for="input-largefile-path">Taranacak Dizin:</label>
+            <input type="text" id="input-largefile-path" placeholder="Varsayılan: İndirilenler, Masaüstü, Belgeler, Filmler" class="custom-input">
+          </div>
+        </div>
+
+        <div class="table-container glass-card">
+          <table class="data-table" id="table-large-files">
+            <thead>
+              <tr>
+                <th width="40"><input type="checkbox" id="th-check-all-files"></th>
+                <th>Dosya Adı</th>
+                <th>Tür</th>
+                <th>Konum</th>
+                <th>Yaş / Son Değişiklik</th>
+                <th>Boyut</th>
+                <th width="120">İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-large-files">
+              <tr>
+                <td colspan="7" class="empty-state">
+                  <div class="empty-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+                    <p>Büyük dosyaları listelemek için "Filtrelere Göre Dosya Ara" butonuna basın.</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 6: DIRECTORY TREE BREAKDOWN -->
+      <section class="tab-pane" id="pane-dirtree">
+        <div class="pane-toolbar">
+          <div class="toolbar-info">
+            <h2>Derin Dizin Analizi (Disk Space Tree)</h2>
+            <p>Klasörlerin disk kullanımını hiyerarşik olarak inceleyin ve derinliklerine inin</p>
+          </div>
+          <div class="toolbar-buttons">
+            <button class="btn btn-secondary" id="btn-tree-up" disabled>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"/></svg>
+              <span>Üst Klasöre Çık</span>
+            </button>
+            <button class="btn btn-primary" id="btn-tree-refresh">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+              <span>Bu Dizini Yenile</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Jump Shortcuts & Current Path -->
+        <div class="tree-nav-box glass-card">
+          <div class="tree-quick-pills">
+            <span class="pill-label">Hızlı Atlama:</span>
+            <button class="btn-pill" data-path="~">Ana Dizin (~)</button>
+            <button class="btn-pill" data-path="~/Library">~/Library</button>
+            <button class="btn-pill" data-path="~/Library/Application Support">Application Support</button>
+            <button class="btn-pill" data-path="~/Library/Arduino15">Arduino15</button>
+            <button class="btn-pill" data-path="~/Library/Android">Android</button>
+            <button class="btn-pill" data-path="~/Desktop">Masaüstü</button>
+          </div>
+
+          <div class="tree-current-bar">
+            <span class="path-label">Konum:</span>
+            <input type="text" id="input-tree-path" class="tree-path-input" value="~">
+            <button class="btn btn-secondary btn-sm" id="btn-tree-go">Git</button>
+            <span class="tree-total-pill" id="tree-total-size">0 GB</span>
+          </div>
+        </div>
+
+        <!-- Tree List Container -->
+        <div class="tree-list-container glass-card" id="tree-items-list">
+          <div class="loading-state">Dizin taranıyor...</div>
+        </div>
+      </section>
+
+      <!-- TAB 7: DUPLICATE FINDER -->
+      <section class="tab-pane" id="pane-duplicates">
+        <div class="pane-toolbar">
+          <div class="toolbar-info">
+            <h2>Yinelenen Dosya Avcısı (Duplicate Finder)</h2>
+            <p>Birebir aynı dosya boyutuna ve SHA-256 imzasına sahip kopya dosyaları bulun</p>
+          </div>
+          <div class="toolbar-buttons">
+            <button class="btn btn-secondary" id="btn-dup-select-copies">
+              <span>Orijinali Koru, Kopyaları Seç</span>
+            </button>
+            <button class="btn btn-primary" id="btn-dup-clean-selected" disabled>
+              <span>Seçilen Kopyaları Sil (<span id="dup-selected-size">0 MB</span>)</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-controls-bar glass-card">
+          <div class="filter-group">
+            <label for="select-dup-min-size">Minimum Boyut:</label>
+            <select id="select-dup-min-size" class="custom-select">
+              <option value="1">1 MB+</option>
+              <option value="5" selected>5 MB+</option>
+              <option value="10">10 MB+</option>
+              <option value="50">50 MB+</option>
+            </select>
+          </div>
+
+          <div class="filter-group" style="flex: 1;">
+            <label for="input-dup-path">Taranacak Dizin:</label>
+            <input type="text" id="input-dup-path" placeholder="Varsayılan: Masaüstü, İndirilenler, Belgeler" class="custom-input">
+          </div>
+
+          <button class="btn btn-secondary" id="btn-scan-duplicates">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+            <span>Yinelenenleri Ara</span>
+          </button>
+        </div>
+
+        <div class="duplicate-groups-wrap" id="duplicate-groups-list">
+          <div class="empty-state">
+            <div class="empty-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75"/></svg>
+              <p>Yinelenen dosyaları keşfetmek için "Yinelenenleri Ara" butonuna basın.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 8: LEFTOVER & RESIDUAL FILES -->
+      <section class="tab-pane" id="pane-leftovers">
+        <div class="pane-toolbar">
+          <div class="toolbar-info">
+            <h2>Artık Dosya Avcısı (Residual & Leftover Cleaner)</h2>
+            <p>Kaldırılmış uygulamaların Application Support artıkları, eski oturum durumları ve sistem çöpleri</p>
+          </div>
+          <div class="toolbar-buttons">
+            <button class="btn btn-secondary" id="btn-scan-leftovers">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+              <span>Artıkları Tara</span>
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btn-select-all-leftovers">Tümünü Seç</button>
+            <button class="btn btn-primary" id="btn-clean-selected-leftovers" disabled>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+              <span>Seçilen Artıkları Temizle (<span id="leftovers-selected-size">0 MB</span>)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Leftover Stats Cards -->
+        <div class="category-summary-grid" style="margin-bottom: 24px;">
+          <div class="glass-card cat-card">
+            <div class="cat-header">
+              <div class="cat-icon cat-sys">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+              </div>
+              <span class="cat-size-badge" id="leftovers-apps-count">0 Uygulama</span>
+            </div>
+            <h3>Kaldırılmış Uygulama Artıkları</h3>
+            <p>Silinen uygulamaların Application Support'ta unuttuğu veriler.</p>
+          </div>
+
+          <div class="glass-card cat-card">
+            <div class="cat-header">
+              <div class="cat-icon cat-dev">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776"/></svg>
+              </div>
+              <span class="cat-size-badge" id="leftovers-ds-count">0 Dosya</span>
+            </div>
+            <h3>.DS_Store & Görünüm Çöpleri</h3>
+            <p>Finder klasör gezintisinde biriken görünüm kalıntıları.</p>
+          </div>
+
+          <div class="glass-card cat-card">
+            <div class="cat-header">
+              <div class="cat-icon cat-node">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <span class="cat-size-badge" id="leftovers-total-size">0 MB</span>
+            </div>
+            <h3>Toplam Kurtarılabilir Alan</h3>
+            <p>Seçilen tüm artıkları temizleyerek diskinize geri kazanın.</p>
+          </div>
+        </div>
+
+        <div class="targets-list" id="leftovers-items-list">
+          <div class="loading-state">Artık dosyaları listelemek için "Artıkları Tara" butonuna basın.</div>
+        </div>
+      </section>
+
+      <!-- TAB 9: APP UNINSTALLER & RESET -->
+      <section class="tab-pane" id="pane-apps">
+        <div class="pane-toolbar">
+          <div class="toolbar-info">
+            <h2>Uygulama Kaldırıcı & Sıfırlayıcı (App Uninstaller)</h2>
+            <p>Uygulamaları ve tüm gizli kullanıcı/önbellek artıklarını kalıcı silin veya tek tıkla fabrika ayarlarına sıfırlayın.</p>
+          </div>
+          <div class="toolbar-buttons">
+            <button class="btn btn-secondary" id="btn-scan-apps">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+              <span>Uygulamaları Tara</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter and Search Bar -->
+        <div class="apps-filter-bar glass-card">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+            <input type="text" id="apps-search-input" placeholder="Uygulama adı veya paket ara (Photoshop, Steam, Discord...)" />
+          </div>
+          <div class="filter-chips" id="apps-filter-chips">
+            <button class="chip active" data-filter="all">Tümü (<span id="chip-apps-all-count">0</span>)</button>
+            <button class="chip" data-filter="large">Büyükler (>500MB)</button>
+            <button class="chip" data-filter="user">Kullanıcı Uygulamaları</button>
+            <button class="chip" data-filter="system">Sistem</button>
+          </div>
+        </div>
+
+        <!-- Apps Summary Grid -->
+        <div class="category-summary-grid" style="margin-bottom: 24px;">
+          <div class="glass-card cat-card">
+            <div class="cat-header">
+              <div class="cat-icon cat-dev">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25z"/></svg>
+              </div>
+              <span class="cat-size-badge" id="apps-count-badge">0 Uygulama</span>
+            </div>
+            <h3>Yüklü Uygulamalar</h3>
+            <p>Sistemde bulunan toplam bağımsız uygulama sayısı.</p>
+          </div>
+
+          <div class="glass-card cat-card">
+            <div class="cat-header">
+              <div class="cat-icon cat-sys">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+              </div>
+              <span class="cat-size-badge" id="apps-binary-size-badge">0 GB</span>
+            </div>
+            <h3>Uygulama Paketleri (.app)</h3>
+            <p>Doğrudan uygulama program ikili dosyalarının kapladığı alan.</p>
+          </div>
+
+          <div class="glass-card cat-card">
+            <div class="cat-header">
+              <div class="cat-icon cat-node">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+              </div>
+              <span class="cat-size-badge" id="apps-data-size-badge">0 GB</span>
+            </div>
+            <h3>İlişkili Kullanıcı Verileri</h3>
+            <p>Application Support, Önbellekler, Konteynerler ve Ayarlar.</p>
+          </div>
+        </div>
+
+        <div class="apps-items-container" id="apps-items-list">
+          <div class="loading-state">Uygulamaları listelemek için "Uygulamaları Tara" butonuna basın.</div>
+        </div>
+      </section>
+
+      <!-- TAB 10: BROWSERS CACHES -->
+      <section class="tab-pane" id="pane-browsers">
+        <div class="pane-toolbar">
+          <div class="toolbar-info">
+            <h2>Tarayıcı Önbellekleri & Gizlilik (Browser Caches)</h2>
+            <p>Web tarayıcılarının biriktirdiği geçici görsel, GPU ve JavaScript kod önbelleklerini güvenle temizleyin. (Şifreler ve yer imleri asla silinmez).</p>
+          </div>
+          <div class="toolbar-buttons">
+            <button class="btn btn-secondary" id="btn-scan-browsers">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+              <span>Tarayıcıları Tara</span>
+            </button>
+            <button class="btn btn-primary" id="btn-clean-all-browsers" disabled>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+              <span>Tüm Tarayıcıları Temizle (<span id="browsers-total-clean-size">0 MB</span>)</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="browsers-grid" id="browsers-grid-list">
+          <div class="loading-state">Tarayıcı önbelleklerini listelemek için "Tarayıcıları Tara" butonuna basın.</div>
+        </div>
+      </section>
+
+      <!-- TAB 11: DOWNLOADS ORGANIZER -->
+      <section class="tab-pane" id="pane-downloads">
+        <div class="pane-toolbar">
+          <div class="toolbar-info">
+            <h2>İndirilenler & Kurulum Dosyaları Analizi (Downloads Organizer)</h2>
+            <p>Downloads klasöründe unutulmuş eski kurulum imajları (.dmg, .pkg), büyük arşivler ve açılmayan dosyalar.</p>
+          </div>
+          <div class="toolbar-buttons">
+            <button class="btn btn-secondary" id="btn-scan-downloads">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+              <span>İndirilenleri Tara</span>
+            </button>
+            <button class="btn btn-primary" id="btn-clean-downloads" disabled>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+              <span>Seçilenleri Sil (<span id="downloads-selected-size">0 MB</span>)</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="category-summary-grid" style="margin-bottom: 24px;">
+          <div class="glass-card cat-card">
+            <div class="cat-header">
+              <div class="cat-icon cat-dev">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+              </div>
+              <span class="cat-size-badge" id="downloads-installers-size">0 MB</span>
+            </div>
+            <h3>Kurulum Dosyaları (.dmg, .pkg)</h3>
+            <p>İndirilip kurulmuş ve artık gereksiz olan disk kalıpları.</p>
+          </div>
+
+          <div class="glass-card cat-card">
+            <div class="cat-header">
+              <div class="cat-icon cat-sys">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776"/></svg>
+              </div>
+              <span class="cat-size-badge" id="downloads-archives-size">0 MB</span>
+            </div>
+            <h3>Arşivler (.zip, .rar, .tar.gz)</h3>
+            <p>Açılmış veya bekleyen sıkıştırılmış dosyalar.</p>
+          </div>
+
+          <div class="glass-card cat-card">
+            <div class="cat-header">
+              <div class="cat-icon cat-node">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <span class="cat-size-badge" id="downloads-old-size">0 MB</span>
+            </div>
+            <h3>30 Günden Eski Dosyalar</h3>
+            <p>1 aydan uzun süredir erişilmemiş veya dokunulmamış dosyalar.</p>
+          </div>
+        </div>
+
+        <div class="downloads-filter-bar glass-card">
+          <div class="filter-chips" id="downloads-filter-chips">
+            <button class="chip active" data-cat="all">Tümü</button>
+            <button class="chip" data-cat="installer">Kurulum Dosyaları (.dmg/.pkg)</button>
+            <button class="chip" data-cat="archive">Arşivler (.zip/.rar)</button>
+            <button class="chip" data-cat="old">Eski Dosyalar (>30 gün)</button>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btn-select-all-downloads">Tümünü Seç / Kaldır</button>
+        </div>
+
+        <div class="targets-list" id="downloads-items-list">
+          <div class="loading-state">Downloads klasörünü listelemek için "İndirilenleri Tara" butonuna basın.</div>
+        </div>
+      </section>
+
+      <!-- TAB 12: APPLE & SYSTEM DATA -->
+      <section class="tab-pane" id="pane-apple">
+        <div class="pane-toolbar">
+          <div class="toolbar-info">
+            <h2>Apple & Sistem Verisi (APFS Snapshots, iOS Yedekleri & Simülatörler)</h2>
+            <p>Time Machine yerel APFS anlık görüntülerini, iPhone/iPad yedeklerini ve Xcode simülatörlerini yönetin.</p>
+          </div>
+          <div class="toolbar-buttons">
+            <button class="btn btn-secondary" id="btn-scan-apple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+              <span>Sistem Verisini Tara</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="apple-system-grid">
+          <!-- APFS Snapshots Card -->
+          <div class="glass-card apple-card">
+            <div class="apple-card-header">
+              <div class="apple-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <h3>APFS Time Machine Anlık Görüntüleri</h3>
+              </div>
+              <span class="stat-pill" id="apple-snapshots-count">0 Görüntü</span>
+            </div>
+            <p class="apple-card-desc">Time Machine harici diske bağlı değilken yerel APFS anlık görüntüleri alır ve diski doldurabilir.</p>
+            <div class="apple-items-box" id="apple-snapshots-list">
+              <div class="loading-state">Taranıyor...</div>
+            </div>
+            <button class="btn btn-secondary btn-block" id="btn-clean-all-snapshots" disabled>Tüm Anlık Görüntüleri Temizle</button>
+          </div>
+
+          <!-- iOS Backups Card -->
+          <div class="glass-card apple-card">
+            <div class="apple-card-header">
+              <div class="apple-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/></svg>
+                <h3>iPhone & iPad Yerel Yedekleri</h3>
+              </div>
+              <span class="stat-pill" id="apple-backups-size">0 GB</span>
+            </div>
+            <p class="apple-card-desc">Mac'inize kablo veya Wi-Fi üzerinden alınmış tam cihaz yedekleri (MobileSync/Backup).</p>
+            <div class="apple-items-box" id="apple-backups-list">
+              <div class="loading-state">Taranıyor...</div>
+            </div>
+          </div>
+
+          <!-- Simulators Card -->
+          <div class="glass-card apple-card">
+            <div class="apple-card-header">
+              <div class="apple-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25"/></svg>
+                <h3>Xcode iOS Simülatörleri</h3>
+              </div>
+              <span class="stat-pill" id="apple-simulators-size">0 MB</span>
+            </div>
+            <p class="apple-card-desc">CoreSimulator cihaz kayıtları, kullanılmayan eski simülatörler ve runtime önbellekleri.</p>
+            <div class="apple-items-box" id="apple-simulators-list">
+              <div class="loading-state">Taranıyor...</div>
+            </div>
+            <button class="btn btn-secondary btn-block" id="btn-clean-simulators">Kullanılmayan Simülatörleri Temizle</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 13: MEDIA & MESSAGES ATTACHMENTS -->
+      <section class="tab-pane" id="pane-media">
+        <div class="pane-toolbar">
+          <div class="toolbar-info">
+            <h2>İletişim & Mesaj Ekleri (Messages & Mail Attachments)</h2>
+            <p>iMessage ve Apple Mail ile gelen diskte unutulmuş video, fotoğraf, ses ve belge eklerini keşfedin.</p>
+          </div>
+          <div class="toolbar-buttons">
+            <button class="btn btn-secondary" id="btn-scan-media">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+              <span>Ekleri Tara</span>
+            </button>
+            <button class="btn btn-primary" id="btn-clean-media" disabled>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+              <span>Seçilen Ekleri Temizle (<span id="media-selected-size">0 MB</span>)</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="category-summary-grid" style="margin-bottom: 24px;">
+          <div class="glass-card cat-card">
+            <div class="cat-header">
+              <div class="cat-icon cat-dev">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"/></svg>
+              </div>
+              <span class="cat-size-badge" id="media-video-size">0 MB</span>
+            </div>
+            <h3>Videolar</h3>
+            <p>iMessage ile paylaşılan yüksek çözünürlüklü video kayıtları.</p>
+          </div>
+
+          <div class="glass-card cat-card">
+            <div class="cat-header">
+              <div class="cat-icon cat-sys">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a2.25 2.25 0 002.25-2.25V6a2.25 2.25 0 00-2.25-2.25H3.75A2.25 2.25 0 001.5 6v12a2.25 2.25 0 002.25 2.25zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
+              </div>
+              <span class="cat-size-badge" id="media-image-size">0 MB</span>
+            </div>
+            <h3>Fotoğraflar & Resimler</h3>
+            <p>Sohbetlerde gönderilen ve indirilen görseller.</p>
+          </div>
+
+          <div class="glass-card cat-card">
+            <div class="cat-header">
+              <div class="cat-icon cat-node">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg>
+              </div>
+              <span class="cat-size-badge" id="media-mail-size">0 MB</span>
+            </div>
+            <h3>Mail İndirmeleri & Belgeler</h3>
+            <p>E-postalardan önizlenen veya indirilen ekler.</p>
+          </div>
+        </div>
+
+        <div class="targets-list" id="media-items-list">
+          <div class="loading-state">İletişim eklerini listelemek için "Ekleri Tara" butonuna basın.</div>
+        </div>
+      </section>
+
+      <!-- TAB 14: MAINTENANCE & SPEEDUP TOOLKIT (From CleanMyMac Image 2) -->
+      <section class="tab-pane" id="pane-maintenance">
+        <div class="pane-toolbar">
+          <div class="toolbar-info">
+            <h2>Sistem Bakımı & Hızlandırma (Maintenance & Speedup)</h2>
+            <p>macOS inaktif RAM boşaltma, DNS önbelleği, Launch Services ve arama dizini onarımı</p>
+          </div>
+          <div class="toolbar-buttons">
+            <button class="btn btn-primary" id="btn-run-all-maintenance">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+              <span>Tüm Bakım Görevlerini Çalıştır</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="maintenance-task-grid" id="maintenance-tasks-container">
+          <div class="loading-state">Bakım görevleri yükleniyor...</div>
+        </div>
+
+        <div class="maintenance-log-card glass-card" id="maintenance-log-box" style="margin-top: 24px; display: none;">
+          <div class="log-header">
+            <h4>İşlem Günlüğü (Task Output)</h4>
+            <button class="btn btn-secondary btn-xs" id="btn-clear-maintenance-log">Temizle</button>
+          </div>
+          <pre class="log-content" id="maintenance-log-content"></pre>
+        </div>
+      </section>
+
+      <!-- TAB 15: FILE SHREDDER (From CleanMyMac Image 1) -->
+      <section class="tab-pane" id="pane-shredder">
+        <div class="pane-toolbar">
+          <div class="toolbar-info">
+            <h2>Güvenli Dosya Öğütücü (File Shredder)</h2>
+            <p>Hassas dosyaları kurtarma yazılımlarıyla dahi asla geri getirilemeyecek şekilde çoklu geçişle ezerek yok edin</p>
+          </div>
+        </div>
+
+        <div class="shredder-box glass-card">
+          <div class="shredder-warning">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+            <div>
+              <strong>Kalıcı ve Geri Döndürülemez İmha:</strong>
+              <p>Öğütülen dosyaların üzerlerine rastgele bitler yazılarak dosya tablosu parçalanır. Disk Drill, PhotoRec veya benzeri hiçbir yazılımla geri getirilemez.</p>
+            </div>
+          </div>
+
+          <div class="shredder-form">
+            <div class="form-row">
+              <label for="input-shred-path">Öğütülecek Dosya veya Klasör Yolu:</label>
+              <div class="input-with-button">
+                <input type="text" id="input-shred-path" class="custom-input" placeholder="Örn: ~/Desktop/gizli_belgeler veya /Users/.../dosya.pdf" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label for="select-shred-passes">Ezme Seviyesi (Passes):</label>
+              <select id="select-shred-passes" class="custom-select">
+                <option value="1">1 Geçiş (Hızlı Sıfırlama — Rastgele Bayt)</option>
+                <option value="3" selected>3 Geçiş (DoD 5220.22-M Standardı — Önerilen)</option>
+              </select>
+            </div>
+
+            <div class="shredder-action-bar">
+              <button class="btn btn-danger btn-large" id="btn-execute-shred">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                <span>Dosyayı Güvenle Öğüt ve Yok Et</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="shred-result-box" id="shred-result-box" style="display: none; margin-top: 20px;"></div>
+        </div>
+      </section>
+
+      <!-- TAB 16: HARDWARE MONITOR (From Sensei Image 3) -->
+      <section class="tab-pane" id="pane-monitor">
+        <div class="pane-toolbar">
+          <div class="toolbar-info">
+            <h2>Donanım & Kaynak Monitörü (Hardware Monitor)</h2>
+            <p>İşlemci, Bellek (RAM), Disk ve Çalışma Süresinin (Uptime) gerçek zamanlı durumu</p>
+          </div>
+          <div class="toolbar-buttons">
+            <button class="btn btn-secondary" id="btn-refresh-monitor">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+              <span>Şimdi Yenile</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="monitor-grid">
+          <!-- CPU Card -->
+          <div class="glass-card monitor-card">
+            <div class="monitor-card-header">
+              <div class="monitor-icon cpu-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25zm.75-12h9v9h-9v-9z"/></svg>
+              </div>
+              <div>
+                <h3>İşlemci (CPU)</h3>
+                <span class="sub" id="mon-cpu-model">Apple Silicon</span>
+              </div>
+            </div>
+            <div class="monitor-metric-big">
+              <span class="metric-val" id="mon-cpu-pct">0%</span>
+              <span class="metric-unit">Kullanım</span>
+            </div>
+            <div class="monitor-stats-list">
+              <div class="mon-stat-row">
+                <span>Mantıksal Çekirdekler:</span>
+                <strong id="mon-cpu-cores">--</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Memory (RAM) Card -->
+          <div class="glass-card monitor-card">
+            <div class="monitor-card-header">
+              <div class="monitor-icon ram-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h10"/></svg>
+              </div>
+              <div>
+                <h3>Bellek (RAM)</h3>
+                <span class="sub" id="mon-ram-total">-- GB Toplam</span>
+              </div>
+            </div>
+            <div class="monitor-metric-big">
+              <span class="metric-val" id="mon-ram-pct">0%</span>
+              <span class="metric-unit">Kullanılıyor</span>
+            </div>
+            <div class="monitor-stats-list">
+              <div class="mon-stat-row">
+                <span>Kullanılan / Boş:</span>
+                <strong><span id="mon-ram-used">--</span> / <span id="mon-ram-free">--</span></strong>
+              </div>
+              <div class="mon-stat-row">
+                <span>Kablolu (Wired):</span>
+                <strong id="mon-ram-wired">--</strong>
+              </div>
+              <div class="mon-stat-row">
+                <span>Sıkıştırılmış (Compressed):</span>
+                <strong id="mon-ram-compressed">--</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- System & Uptime Card -->
+          <div class="glass-card monitor-card">
+            <div class="monitor-card-header">
+              <div class="monitor-icon sys-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25"/></svg>
+              </div>
+              <div>
+                <h3>Sistem & Çalışma Süresi</h3>
+                <span class="sub" id="mon-hostname">Mac</span>
+              </div>
+            </div>
+            <div class="monitor-stats-list" style="margin-top: 16px;">
+              <div class="mon-stat-row">
+                <span>İşletim Sistemi:</span>
+                <strong id="mon-os-ver">macOS</strong>
+              </div>
+              <div class="mon-stat-row">
+                <span>Açık Kalma Süresi:</span>
+                <strong id="mon-uptime">--</strong>
+              </div>
+              <div class="mon-stat-row">
+                <span>Erişim Tipi:</span>
+                <strong style="color:var(--accent-emerald);">Yerel (127.0.0.1)</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Confirmation Dialog (Native HTML5 Dialog) -->
+  <dialog id="confirm-modal" class="custom-dialog">
+    <div class="dialog-content glass-card">
+      <div class="dialog-icon-wrap" id="dialog-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+      </div>
+      <h3 id="modal-title">Temizleme Onayı</h3>
+      <p id="modal-message">Seçili öğeler silinecektir. Devam etmek istiyor musunuz?</p>
+      
+      <div class="modal-meta-box">
+        <div class="meta-row">
+          <span>Kazanılacak Tahmini Alan:</span>
+          <strong id="modal-freed-size">0 MB</strong>
+        </div>
+        <div class="meta-row">
+          <span>Temizleme Yöntemi:</span>
+          <strong id="modal-method-text">Çöp Kutusuna Taşı</strong>
+        </div>
+      </div>
+
+      <div class="dialog-actions">
+        <button class="btn btn-secondary" id="btn-modal-cancel">Vazgeç</button>
+        <button class="btn btn-danger" id="btn-modal-confirm">Temizliği Başlat</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Authentication Login Dialog -->
+  <dialog id="auth-modal" class="custom-dialog auth-dialog">
+    <div class="dialog-content glass-card auth-card">
+      <div class="auth-logo-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      </div>
+      <h3>DiskCleaner Pro</h3>
+      <p class="auth-desc">Bu sunucu <code>config.json</code> ile şifre korumalıdır. Devam etmek için şifrenizi girin.</p>
+      
+      <form class="auth-form-wrap" id="auth-form" onsubmit="return false;">
+        <div class="auth-input-group">
+          <input type="password" id="auth-password-input" class="custom-input auth-input" placeholder="Erişim Şifresi" autofocus autocomplete="current-password" />
+        </div>
+        <div class="auth-error-msg" id="auth-error-msg" style="display: none;"></div>
+        <button type="submit" class="btn btn-primary btn-block" id="btn-auth-submit">
+          <span>Giriş Yap</span>
+        </button>
+      </form>
+
+      <div class="auth-footer-hint">
+        <span>Yerel adres: <code>127.0.0.1</code> • Sadece localhost</span>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
