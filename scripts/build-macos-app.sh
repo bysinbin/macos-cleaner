@@ -19,10 +19,10 @@ mkdir -p "$BUILD_DIR" "$APP_DIR/Contents/MacOS" "$APP_DIR/Contents/Resources"
 LDFLAGS="-s -w -X disk-cleaner/internal/version.Version=$VERSION -X disk-cleaner/internal/version.GitCommit=$COMMIT -X disk-cleaner/internal/version.BuildDate=$BUILD_DATE"
 
 echo "-> Compiling for darwin/arm64 (Apple Silicon)..."
-GOOS=darwin GOARCH=arm64 go build -ldflags "$LDFLAGS" -o "$BUILD_DIR/disk-cleaner-arm64" "$ROOT_DIR"
+CGO_ENABLED=1 CC="clang -target arm64-apple-macos11.0" GOOS=darwin GOARCH=arm64 go build -ldflags "$LDFLAGS" -o "$BUILD_DIR/disk-cleaner-arm64" "$ROOT_DIR"
 
 echo "-> Compiling for darwin/amd64 (Intel Mac)..."
-GOOS=darwin GOARCH=amd64 go build -ldflags "$LDFLAGS" -o "$BUILD_DIR/disk-cleaner-amd64" "$ROOT_DIR"
+CGO_ENABLED=1 CC="clang -target x86_64-apple-macos11.0" GOOS=darwin GOARCH=amd64 go build -ldflags "$LDFLAGS" -o "$BUILD_DIR/disk-cleaner-amd64" "$ROOT_DIR"
 
 echo "-> Creating universal macOS binary with lipo..."
 lipo -create -output "$APP_DIR/Contents/MacOS/DiskCleaner" "$BUILD_DIR/disk-cleaner-arm64" "$BUILD_DIR/disk-cleaner-amd64"
