@@ -80,6 +80,10 @@ EOF
 # Update version in Info.plist
 sed -i '' "s/2.0.0/${VERSION#v}/g" "$APP_DIR/Contents/Info.plist"
 
+echo "-> Signing macOS App bundle with ad-hoc signature for TCC / Full Disk Access..."
+xattr -cr "$APP_DIR"
+codesign --force --deep --sign - "$APP_DIR"
+
 echo "-> Packaging distribution archives..."
 cd "$BUILD_DIR"
 zip -r -q "DiskCleaner-${VERSION}-macos-app.zip" "DiskCleaner.app"

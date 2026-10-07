@@ -2355,6 +2355,9 @@ body {
   width: 100%;
   padding: 32px 28px;
   text-align: center;
+  background: #0f172a !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75) !important;
 }
 
 .auth-logo-wrap {

@@ -17,29 +17,40 @@ type PermissionStatus struct {
 }
 
 // CheckFullDiskAccess verifies if the current process has macOS Full Disk Access (FDA)
-// by attempting to read protected system directories (Safari or Messages).
+// by attempting to read multiple TCC-protected system directories and files.
 func CheckFullDiskAccess() bool {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return false
 	}
 
-	// Target 1: Safari directory / Bookmarks (TCC protected)
-	safariPath := filepath.Join(home, "Library", "Safari")
-	if entries, err := os.ReadDir(safariPath); err == nil && len(entries) > 0 {
-		return true
+	dirTargets := []string{
+		filepath.Join(home, "Library", "Safari"),
+		filepath.Join(home, "Library", "Messages"),
+		filepath.Join(home, "Library", "Mail"),
+		filepath.Join(home, "Library", "Suggestions"),
+		filepath.Join(home, "Library", "HomeKit"),
+		filepath.Join(home, "Library", "Containers", "com.apple.mail", "Data", "Library", "Mail"),
 	}
 
-	// Target 2: Messages chat database directory (TCC protected)
-	messagesPath := filepath.Join(home, "Library", "Messages")
-	if entries, err := os.ReadDir(messagesPath); err == nil && len(entries) > 0 {
-		return true
+	for _, dir := range dirTargets {
+		if _, err := os.ReadDir(dir); err == nil {
+			return true
+		}
 	}
 
-	// Target 3: Mail container
-	mailPath := filepath.Join(home, "Library", "Mail")
-	if entries, err := os.ReadDir(mailPath); err == nil && len(entries) > 0 {
-		return true
+	fileTargets := []string{
+		filepath.Join(home, "Library", "Safari", "Bookmarks.plist"),
+		filepath.Join(home, "Library", "Safari", "CloudTabs.db"),
+		filepath.Join(home, "Library", "Messages", "chat.db"),
+		filepath.Join(home, "Library", "Suggestions", "suggestions.db"),
+	}
+
+	for _, file := range fileTargets {
+		if f, err := os.Open(file); err == nil {
+			_ = f.Close()
+			return true
+		}
 	}
 
 	return false

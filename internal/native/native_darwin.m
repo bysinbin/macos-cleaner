@@ -116,9 +116,15 @@ static DiskCleanerAppDelegate *globalDelegate = nil;
 }
 
 - (BOOL)windowShouldClose:(NSWindow *)sender {
-    // Hide window to status bar instead of closing entire app
-    [self.window orderOut:nil];
-    return NO;
+    if ([self.window styleMask] & NSWindowStyleMaskFullScreen) {
+        [self.window toggleFullScreen:nil];
+    }
+    [NSApp terminate:nil];
+    return YES;
+}
+
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
+    return YES;
 }
 
 - (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag {
