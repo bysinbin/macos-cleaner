@@ -43,8 +43,39 @@ func NewServer(port int, embeddedFS embed.FS) *Server {
 	return s
 }
 
-// Start launches the HTTP server with localhost-only check and optional auth middleware
-func (s *Server) Start() error {
+// Port returns the active listening port
+func (s *Server) Port() int {
+	return s.port
+}
+
+// Listen establishes the TCP listener on localhost, automatically finding an available port if needed
+func (s *Server) Listen() (net.Listener, error) {
+	cfg := config.GetConfig()
+	bindHost := cfg.BindAddress
+	if bindHost == "" {
+		bindHost = "127.0.0.1"
+	}
+
+	addr := fmt.Sprintf("%s:%d", bindHost, s.port)
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		for p := s.port + 1; p <= s.port + 20; p++ {
+			altAddr := fmt.Sprintf("%s:%d", bindHost, p)
+			ln, err = net.Listen("tcp", altAddr)
+			if err == nil {
+				s.port = p
+				break
+			}
+		}
+		if err != nil {
+			return nil, fmt.Errorf("port dinlenemedi (%s): %w", addr, err)
+		}
+	}
+	return ln, nil
+}
+
+// Serve handles incoming requests using the provided TCP listener
+func (s *Server) Serve(ln net.Listener) error {
 	cfg := config.GetConfig()
 	bindHost := cfg.BindAddress
 	if bindHost == "" {
@@ -66,7 +97,16 @@ func (s *Server) Start() error {
 		fmt.Printf("🔓 Giriş Koruması: KAPALI\n")
 	}
 	fmt.Printf("🚀 Disk Cleaner Dashboard hazır: http://%s\n", addr)
-	return srv.ListenAndServe()
+	return srv.Serve(ln)
+}
+
+// Start launches the HTTP server with localhost-only check and optional auth middleware
+func (s *Server) Start() error {
+	ln, err := s.Listen()
+	if err != nil {
+		return err
+	}
+	return s.Serve(ln)
 }
 
 // Security middleware enforcing localhost-only binding and authentication

@@ -10,7 +10,6 @@ import (
 	"os/signal"
 	"runtime"
 	"syscall"
-	"time"
 
 	"disk-cleaner/internal/cleaner"
 	"disk-cleaner/internal/config"
@@ -56,34 +55,32 @@ func main() {
 
 	srv := server.NewServer(*port, embeddedWeb)
 
+	// Establish listening port immediately (non-blocking, dynamic fallback if port is busy)
+	ln, err := srv.Listen()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Sunucu başlatılamadı: %v\n", err)
+		os.Exit(1)
+	}
+
+	actualPort := srv.Port()
+	serverURL := fmt.Sprintf("http://127.0.0.1:%d", actualPort)
+
 	// Graceful shutdown on Interrupt / SIGTERM
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-sigChan
 		fmt.Println("\nDiskCleaner Pro kapatılıyor...")
+		_ = ln.Close()
 		os.Exit(0)
 	}()
 
 	// Start Go HTTP Server in background
 	go func() {
-		if err := srv.Start(); err != nil {
-			fmt.Fprintf(os.Stderr, "Sunucu başlatılamadı: %v\n", err)
-			os.Exit(1)
+		if err := srv.Serve(ln); err != nil && err != http.ErrServerClosed {
+			fmt.Fprintf(os.Stderr, "Sunucu hatası: %v\n", err)
 		}
 	}()
-
-	serverURL := fmt.Sprintf("http://127.0.0.1:%d", *port)
-
-	// Health check to ensure local server is ready
-	for i := 0; i < 30; i++ {
-		time.Sleep(100 * time.Millisecond)
-		resp, err := http.Get(serverURL + "/api/system")
-		if err == nil && resp.StatusCode < 500 {
-			_ = resp.Body.Close()
-			break
-		}
-	}
 
 	// Start Real-time Trash Watcher (AppCleaner behavior)
 	trashWatcher := cleaner.NewTrashWatcher()

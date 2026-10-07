@@ -64,6 +64,13 @@ cat << 'EOF' > "$APP_DIR/Contents/Info.plist"
     <true/>
     <key>NSRequiresAquaSystemAppearance</key>
     <false/>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsLocalNetworking</key>
+        <true/>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
     <key>NSSystemExtensionUsageDescription</key>
     <string>DiskCleaner Pro requires system access to inspect caches and clean residual files.</string>
 </dict>

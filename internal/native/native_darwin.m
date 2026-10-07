@@ -120,6 +120,25 @@ static DiskCleanerAppDelegate *globalDelegate = nil;
     return NO;
 }
 
+- (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag {
+    [self.window makeKeyAndOrderFront:nil];
+    [NSApp activateIgnoringOtherApps:YES];
+    return YES;
+}
+
+- (void)webView:(WKWebView *)webView didFailProvisionalNavigation:(WKNavigation *)navigation withError:(NSError *)error {
+    // Retry loading if local server is binding
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(300 * NSEC_PER_MSEC)), dispatch_get_main_queue(), ^{
+        NSURL *targetURL = [NSURL URLWithString:self.serverURL];
+        NSURLRequest *req = [NSURLRequest requestWithURL:targetURL cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:15.0];
+        [self.webView loadRequest:req];
+    });
+}
+
+- (void)applicationWillTerminate:(NSNotification *)notification {
+    exit(0);
+}
+
 - (void)actionOpenWindow:(id)sender {
     [self.window makeKeyAndOrderFront:nil];
     [NSApp activateIgnoringOtherApps:YES];
