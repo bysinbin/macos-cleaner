@@ -408,13 +408,27 @@ let extCurrentFilter = 'all';
 let extSearchQuery = '';
 let privacyData = null;
 
-// Global fetch wrapper to handle session expiration (401)
+// Global fetch wrapper to handle session authentication and expiration (401)
 const _originalFetch = window.fetch;
-window.fetch = async (...args) => {
-  const res = await _originalFetch(...args);
+window.fetch = async (url, options = {}) => {
+  const token = localStorage.getItem('dc_token');
+  if (token && typeof url === 'string' && url.startsWith('/api/')) {
+    options = options || {};
+    options.headers = options.headers || {};
+    if (options.headers instanceof Headers) {
+      if (!options.headers.has('Authorization')) {
+        options.headers.set('Authorization', `Bearer ${token}`);
+      }
+    } else {
+      if (!options.headers['Authorization']) {
+        options.headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+  }
+  const res = await _originalFetch(url, options);
   if (res.status === 401) {
-    const url = args[0] ? args[0].toString() : '';
-    if (!url.includes('/api/auth/')) {
+    const urlStr = url ? url.toString() : '';
+    if (!urlStr.includes('/api/auth/')) {
       if (elements.authModal && !elements.authModal.open) {
         elements.authModal.showModal();
       }
@@ -424,8 +438,19 @@ window.fetch = async (...args) => {
   return res;
 };
 
+// Helper for authenticated EventSource instances
+function createEventSource(url) {
+  const token = localStorage.getItem('dc_token');
+  if (token) {
+    const sep = url.includes('?') ? '&' : '?';
+    url += `${sep}token=${encodeURIComponent(token)}`;
+  }
+  return new EventSource(url);
+}
+
 // Centralized initial data fetcher (runs only after authentication)
 function initializeDashboardData() {
+  initScanProgressStream();
   fetchSystemStats();
   startGlobalScan();
   startLeftoversScan(true); // background initial scan for badge
@@ -442,7 +467,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupNavigation();
   setupEventHandlers();
   initFDA();
-  initScanProgressStream();
   initDirTreeViewSwitcher();
 
   const isAuth = await checkAuthStatus();
@@ -615,7 +639,7 @@ function startGlobalScan() {
   elements.scanBannerTitle.textContent = 'Disk Taranıyor...';
   elements.scanBannerDesc.textContent = 'Geliştirici ve sistem dizinleri taranıyor';
 
-  const eventSource = new EventSource('/api/scan?stream=true');
+  const eventSource = createEventSource('/api/scan?stream=true');
 
   eventSource.addEventListener('progress', (e) => {
     try {
@@ -896,7 +920,7 @@ async function startNodeModulesScan() {
     ? `/api/nodemodules?stream=true&root=${encodeURIComponent(rootPath)}`
     : '/api/nodemodules?stream=true';
 
-  const eventSource = new EventSource(url);
+  const eventSource = createEventSource(url);
   const items = [];
 
   eventSource.addEventListener('progress', (e) => {
@@ -2748,6 +2772,9 @@ async function checkAuthStatus() {
         if (elements.authStatusBar) elements.authStatusBar.style.display = 'none';
         return false;
       } else {
+        if (data.token) {
+          localStorage.setItem('dc_token', data.token);
+        }
         if (elements.authModal && elements.authModal.open) {
           elements.authModal.close();
         }
@@ -2785,6 +2812,9 @@ async function handleLoginSubmit() {
     });
     const data = await res.json();
     if (res.ok && data.success) {
+      if (data.token) {
+        localStorage.setItem('dc_token', data.token);
+      }
       elements.authModal.close();
       elements.authPasswordInput.value = '';
       if (elements.authStatusBar) elements.authStatusBar.style.display = 'flex';
@@ -2805,6 +2835,11 @@ async function handleLoginSubmit() {
 
 async function handleLogout() {
   try {
+    localStorage.removeItem('dc_token');
+    if (sseSource) {
+      try { sseSource.close(); } catch (_) {}
+      sseSource = null;
+    }
     await fetch('/api/auth/logout', { method: 'POST' });
     showToast('Oturum kapatıldı.', 'info');
     checkAuthStatus();
@@ -4645,8 +4680,13 @@ function initScanProgressStream() {
 
   if (!pill) return;
 
+  if (sseSource) {
+    try { sseSource.close(); } catch (_) {}
+    sseSource = null;
+  }
+
   try {
-    sseSource = new EventSource('/api/events/progress');
+    sseSource = createEventSource('/api/events/progress');
 
     sseSource.addEventListener('progress', (e) => {
       try {

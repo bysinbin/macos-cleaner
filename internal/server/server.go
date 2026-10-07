@@ -193,6 +193,9 @@ func (s *Server) isAuthenticated(r *http.Request) bool {
 		}
 	}
 	if token == "" {
+		token = r.URL.Query().Get("token")
+	}
+	if token == "" {
 		return false
 	}
 

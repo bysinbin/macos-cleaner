@@ -872,9 +872,19 @@ func (s *Server) handleSmartCareClean(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleAuthStatus(w http.ResponseWriter, r *http.Request) {
 	cfg := config.GetConfig()
 	isAuth := s.isAuthenticated(r)
+	token := ""
+	if isAuth && cfg.Auth.Enabled {
+		cookie, err := r.Cookie("dc_token")
+		if err == nil && cookie != nil {
+			token = cookie.Value
+		} else {
+			token = s.generateToken()
+		}
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"authEnabled":   cfg.Auth.Enabled,
 		"authenticated": !cfg.Auth.Enabled || isAuth,
+		"token":         token,
 	})
 }
 
