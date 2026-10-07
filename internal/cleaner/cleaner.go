@@ -105,6 +105,17 @@ func (c *Cleaner) CleanTarget(targetPath string, moveToTrash bool) (uint64, int6
 		return 0, 0, err
 	}
 
+	// Special handling for Antigravity brain media (screenshots, recordings, and temp media)
+	if isAntigravityBrainPath(resolved) {
+		return c.CleanBrainMedia(resolved, moveToTrash)
+	}
+
+	// Special handling for VS Code obsolete extensions
+	home, _ := os.UserHomeDir()
+	if filepath.Clean(resolved) == filepath.Join(home, ".vscode", "extensions") {
+		return CleanVSCodeObsoleteExtensions()
+	}
+
 	scanner := NewScanner(nil)
 	size, count, err := scanner.CalculateDirSize(resolved)
 	if err != nil {

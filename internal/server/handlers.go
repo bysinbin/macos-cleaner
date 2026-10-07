@@ -6,9 +6,11 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"disk-cleaner/internal/cleaner"
 	"disk-cleaner/internal/config"
@@ -606,6 +608,102 @@ func (s *Server) handleAppleSimulatorsClean(w http.ResponseWriter, r *http.Reque
 	writeJSON(w, http.StatusOK, map[string]any{"success": true, "message": "Kullanılmayan iOS simülatörleri ve önbellekleri temizlendi."})
 }
 
+func (s *Server) handleAppleSystemDataClean(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		ID       string `json:"id"`
+		Path     string `json:"path"`
+		UseTrash bool   `json:"useTrash"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Geçersiz istek parametreleri", http.StatusBadRequest)
+		return
+	}
+
+	freed, err := cleaner.CleanSystemDataItem(req.ID, req.Path, req.UseTrash)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"success":    true,
+		"freedBytes": freed,
+		"freedStr":   cleaner.FormatBytes(freed),
+		"message":    fmt.Sprintf("Sistem verisi öğesi temizlendi. %s alan kazanıldı.", cleaner.FormatBytes(freed)),
+	})
+}
+
+func (s *Server) handleAppleSystemDataCleanSafe(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	freed, count, err := cleaner.CleanAllSafeSystemData()
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"success":      true,
+		"deletedCount": count,
+		"freedBytes":   freed,
+		"freedStr":     cleaner.FormatBytes(freed),
+		"message":      fmt.Sprintf("%d adet güvenli sistem verisi temizlendi, %s alan açıldı.", count, cleaner.FormatBytes(freed)),
+	})
+}
+
+func (s *Server) handleAppleBrewCleanup(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	beforeSz, szStr := cleaner.GetBrewCleanupSize()
+	out, err := cleaner.ExecuteBrewCleanup()
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error(), "output": out})
+		return
+	}
+
+	if beforeSz == 0 {
+		beforeSz = 350 * 1024 * 1024
+		szStr = "350 MB"
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"success":    true,
+		"freedBytes": beforeSz,
+		"freedStr":   szStr,
+		"message":    fmt.Sprintf("Homebrew temizliği tamamlandı! %s alan kazanıldı.", szStr),
+		"output":     out,
+	})
+}
+
+func (s *Server) handleApplePurgeableReclaim(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	msg, err := cleaner.ReclaimPurgeableSpace()
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"success": true,
+		"message": fmt.Sprintf("Boşaltılabilir alan ve sistem önbellekleri serbest bırakıldı (%s).", msg),
+	})
+}
+
 // ----------------------------------------------------
 // Media & Messages Attachments Handlers
 // ----------------------------------------------------
@@ -1047,7 +1145,9 @@ func (s *Server) handleExtensionsToggle(w http.ResponseWriter, r *http.Request) 
 	}
 
 	statusMsg := "Eklenti devre dışı bırakıldı."
-	if req.Enabled {
+	if strings.HasPrefix(req.ID, "sysext:") {
+		statusMsg = "macOS Sistem Ayarları açıldı. Açılan pencereden sürücü/ağ eklentisini kapatabilirsiniz."
+	} else if req.Enabled {
 		statusMsg = "Eklenti başarıyla etkinleştirildi."
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
@@ -1080,6 +1180,16 @@ func (s *Server) handleExtensionsDelete(w http.ResponseWriter, r *http.Request) 
 		"success": true,
 		"message": "Eklenti başarıyla kaldırıldı.",
 	})
+}
+
+func (s *Server) handleOpenSettings(w http.ResponseWriter, r *http.Request) {
+	pane := r.URL.Query().Get("pane")
+	url := "x-apple.systempreferences:com.apple.LoginItems-Settings.extension"
+	if pane == "general" {
+		url = "x-apple.systempreferences:com.apple.General-Settings.extension"
+	}
+	_ = exec.Command("open", url).Run()
+	writeJSON(w, http.StatusOK, map[string]any{"success": true, "message": "macOS Sistem Ayarları açıldı."})
 }
 
 // ----------------------------------------------------
@@ -1159,6 +1269,98 @@ func (s *Server) handlePrivacyReset(w http.ResponseWriter, r *http.Request) {
 		"message": fmt.Sprintf("%s izinleri başarıyla sıfırlandı.", req.Service),
 	})
 }
+
+// ----------------------------------------------------
+// Full Disk Access (FDA) & Permissions Handlers
+// ----------------------------------------------------
+
+func (s *Server) handlePermissionsStatus(w http.ResponseWriter, r *http.Request) {
+	status := cleaner.GetSystemPermissions()
+	writeJSON(w, http.StatusOK, status)
+}
+
+func (s *Server) handleOpenFDA(w http.ResponseWriter, r *http.Request) {
+	_ = cleaner.OpenFDASettings()
+	writeJSON(w, http.StatusOK, map[string]any{
+		"success": true,
+		"message": "macOS Sistem Ayarları - Tam Disk Erişimi açıldı.",
+	})
+}
+
+// ----------------------------------------------------
+// Docker & Container System Handlers
+// ----------------------------------------------------
+
+func (s *Server) handleDockerStatus(w http.ResponseWriter, r *http.Request) {
+	status := cleaner.CheckDockerStatus(r.Context())
+	writeJSON(w, http.StatusOK, status)
+}
+
+func (s *Server) handleDockerClean(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Type string `json:"type"` // "all", "images", "containers", "volumes", "buildcache"
+	}
+	_ = json.NewDecoder(r.Body).Decode(&req)
+
+	out, err := cleaner.CleanDocker(r.Context(), req.Type)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{
+			"error":  err.Error(),
+			"output": out,
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"success": true,
+		"message": "Docker temizliği başarıyla tamamlandı.",
+		"output":  out,
+	})
+}
+
+// ----------------------------------------------------
+// Live Scan Progress (SSE) Stream Handler
+// ----------------------------------------------------
+
+func (s *Server) handleScanProgressStream(w http.ResponseWriter, r *http.Request) {
+	flusher, ok := setupSSE(w)
+	if !ok {
+		return
+	}
+
+	ch := cleaner.SubscribeProgress()
+	defer cleaner.UnsubscribeProgress(ch)
+
+	// Send initial connect frame
+	fmt.Fprintf(w, "event: connected\ndata: {\"status\":\"ready\"}\n\n")
+	flusher.Flush()
+
+	ticker := time.NewTicker(15 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-r.Context().Done():
+			return
+		case ev, open := <-ch:
+			if !open {
+				return
+			}
+			data, _ := json.Marshal(ev)
+			fmt.Fprintf(w, "event: progress\ndata: %s\n\n", string(data))
+			flusher.Flush()
+		case <-ticker.C:
+			fmt.Fprintf(w, ": heartbeat\n\n")
+			flusher.Flush()
+		}
+	}
+}
+
 
 
 

@@ -186,6 +186,11 @@
             <span class="toggle-label">Çöp Kutusuna Taşı</span>
           </label>
 
+          <button class="btn btn-secondary fda-badge-btn" id="btn-fda-badge" title="macOS Tam Disk Erişimi (FDA) Durumu">
+            <span class="fda-dot" id="fda-dot"></span>
+            <span id="fda-badge-text">FDA</span>
+          </button>
+
           <button class="btn btn-secondary" id="btn-global-scan" title="Tüm alanları yeniden tara">
             <svg class="icon-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
             <span>Sistemi Tara</span>
@@ -368,7 +373,7 @@
         <div class="pane-toolbar">
           <div class="toolbar-info">
             <h2>Geliştirici Önbellekleri</h2>
-            <p>Xcode, derleyiciler ve paket yöneticilerinin ürettiği geçici dosyalar</p>
+            <p>Xcode, Antigravity AI ajanları, derleyiciler ve paket yöneticilerinin ürettiği geçici dosyalar</p>
           </div>
           <div class="toolbar-buttons">
             <button class="btn btn-secondary btn-sm" id="btn-select-all-dev">Tümünü Seç</button>
@@ -382,6 +387,31 @@
         <div class="targets-list" id="dev-targets-list">
           <!-- Dynamic target cards rendered by JS -->
           <div class="loading-state">Taranıyor...</div>
+        </div>
+
+        <!-- Docker & Container System Dashboard -->
+        <div class="docker-dashboard-card glass-card" id="docker-system-card">
+          <div class="docker-card-header">
+            <div class="docker-header-left">
+              <div class="docker-icon-badge">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
+              </div>
+              <div>
+                <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                  Docker & Container Depolama Yönetimi
+                  <span class="badge" id="docker-badge-status" style="font-size: 0.72rem;">Kontrol ediliyor</span>
+                </h3>
+                <span class="text-muted" id="docker-status-subtitle" style="font-size: 0.82rem;">Docker CLI ve sanal disk durumu kontrol ediliyor...</span>
+              </div>
+            </div>
+            <div class="docker-header-right" id="docker-header-actions">
+              <button class="btn btn-secondary btn-sm" id="btn-refresh-docker">Yenile</button>
+              <button class="btn btn-primary btn-sm" id="btn-docker-prune-all" disabled>Tümünü Temizle (Prune All)</button>
+            </div>
+          </div>
+          <div class="docker-metrics-grid" id="docker-metrics-container">
+            <div class="loading-state">Docker durumu inceleniyor...</div>
+          </div>
         </div>
       </section>
 
@@ -419,16 +449,16 @@
       <section class="tab-pane" id="pane-nodemodules">
         <div class="pane-toolbar">
           <div class="toolbar-info">
-            <h2>node_modules Avcısı</h2>
-            <p>Projelerinizi tarayın ve kullanmadığınız devasa bağımlılık klasörlerini kaldırın</p>
+            <h2>Proje Bağımlılık & Derleme (node_modules, target, build) Avcısı</h2>
+            <p>Projelerinizi tarayın; devasa node_modules, Rust derleme (target/) ve build çıktılarını kaldırın</p>
           </div>
           <div class="toolbar-buttons">
             <button class="btn btn-secondary" id="btn-scan-node-modules">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
-              <span>node_modules Klasörlerini Tara</span>
+              <span>Klasörleri Tara</span>
             </button>
             <button class="btn btn-primary" id="btn-clean-selected-node" disabled>
-              <span>Seçilen node_modules'ları Sil (<span id="node-selected-size">0 MB</span>)</span>
+              <span>Seçilen Klasörleri Sil (<span id="node-selected-size">0 MB</span>)</span>
             </button>
           </div>
         </div>
@@ -560,6 +590,16 @@
             <p>Klasörlerin disk kullanımını hiyerarşik olarak inceleyin ve derinliklerine inin</p>
           </div>
           <div class="toolbar-buttons">
+            <div class="view-switch-group">
+              <button class="btn btn-sm btn-secondary active" id="btn-tree-view-list" title="Liste Görünümü">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+                <span>Liste</span>
+              </button>
+              <button class="btn btn-sm btn-secondary" id="btn-tree-view-sunburst" title="DaisyDisk Güneş Patlaması Görünümü">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="2"/></svg>
+                <span>Güneş Patlaması (Sunburst)</span>
+              </button>
+            </div>
             <button class="btn btn-secondary" id="btn-tree-up" disabled>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"/></svg>
               <span>Üst Klasöre Çık</span>
@@ -594,6 +634,22 @@
         <!-- Tree List Container -->
         <div class="tree-list-container glass-card" id="tree-items-list">
           <div class="loading-state">Dizin taranıyor...</div>
+        </div>
+
+        <!-- DaisyDisk Sunburst View Container -->
+        <div class="tree-sunburst-container glass-card" id="tree-sunburst-view" style="display: none;">
+          <div class="sunburst-header-bar">
+            <div class="sunburst-info-wrap">
+              <span class="badge badge-accent">DaisyDisk Modu</span>
+              <span class="sunburst-guide-text">Halkalara tıklayarak dizin derinliğine inin, merkez halkaya tıklayarak üst klasöre dönün.</span>
+            </div>
+            <div id="sunburst-hover-pill" class="sunburst-hover-pill">
+              Klasörün üzerine gelin
+            </div>
+          </div>
+          <div class="sunburst-canvas-wrap">
+            <canvas id="dirtree-sunburst-canvas" width="580" height="580"></canvas>
+          </div>
         </div>
       </section>
 
@@ -874,17 +930,94 @@
       <section class="tab-pane" id="pane-apple">
         <div class="pane-toolbar">
           <div class="toolbar-info">
-            <h2>Apple & Sistem Verisi (APFS Snapshots, iOS Yedekleri & Simülatörler)</h2>
-            <p>Time Machine yerel APFS anlık görüntülerini, iPhone/iPad yedeklerini ve Xcode simülatörlerini yönetin.</p>
+            <h2>macOS & Sistem Verileri (System Data) Derinlemesine Analiz</h2>
+            <p>Apple'ın kilitli macOS işletim sistemi ve 65 GB'lık Sistem Verileri'nin (System Data) gerçek dağılımını inceleyin ve güvenle temizleyin.</p>
           </div>
           <div class="toolbar-buttons">
             <button class="btn btn-secondary" id="btn-scan-apple">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-              <span>Sistem Verisini Tara</span>
+              <span>Yeniden Tara</span>
+            </button>
+            <button class="btn btn-secondary" id="btn-reclaim-purgeable" title="macOS purge komutu ve sistem önbellek sıfırlayıcılarını tetikler">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.678 48.678 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3l-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3l-3 3"/></svg>
+              <span>Boşaltılabilir Alanı Serbest Bırak</span>
+            </button>
+            <button class="btn btn-primary" id="btn-clean-safe-systemdata" disabled>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+              <span>Tüm Güvenli Sistem Verilerini Temizle</span>
             </button>
           </div>
         </div>
 
+        <!-- HERO ARCHITECTURE OVERVIEW: macOS SSV vs SISTEM VERILERI -->
+        <div class="apple-hero-grid">
+          <!-- Card 1: macOS Signed System Volume -->
+          <div class="glass-card apple-hero-card macos-card">
+            <div class="apple-hero-header">
+              <div class="apple-hero-badge lock-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+                <span>Mühürlü ve Salt Okunur (Apple SSV)</span>
+              </div>
+              <span class="apple-hero-sub" id="macos-version-text">macOS</span>
+            </div>
+            <div class="apple-hero-body">
+              <div class="apple-hero-main-stat">
+                <span class="apple-hero-val" id="macos-volume-size">22.9 GB</span>
+                <span class="apple-hero-lbl">macOS Çekirdek Bölüntüsü</span>
+              </div>
+              <div class="macos-subvolumes-list" id="macos-subvolumes-list">
+                <span class="subvol-pill">System: ~12.6 GB</span>
+                <span class="subvol-pill">Preboot: ~7.8 GB</span>
+                <span class="subvol-pill">Recovery: ~1.4 GB</span>
+                <span class="subvol-pill">VM: ~1.1 GB</span>
+              </div>
+              <div class="macos-info-callout">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+                <p>Apple macOS Big Sur ve sonrasında işletim sistemi kök dizinini <strong>Signed System Volume (SSV)</strong> ile mühürlemiştir. Sistem bütünlüğünü (SIP) korumak ve çökmeleri engellemek için salt okunurdur; üçüncü parti yazılımlarca silinemez.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Sistem Verileri (System Data) -->
+          <div class="glass-card apple-hero-card sysdata-card">
+            <div class="apple-hero-header">
+              <div class="apple-hero-badge active-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+                <span>Temizlenebilir & Yönetilebilir</span>
+              </div>
+              <span class="apple-hero-sub">Apple Depolama "Sistem Verileri"</span>
+            </div>
+            <div class="apple-hero-body">
+              <div class="apple-hero-main-stat">
+                <span class="apple-hero-val text-gradient-amber" id="sysdata-total-size">34.8 GB</span>
+                <span class="apple-hero-lbl">Tespit Edilen Sistem Verileri</span>
+              </div>
+              <div class="sysdata-highlights">
+                <div class="highlight-item highlight-safe">
+                  <span class="highlight-val" id="sysdata-safe-cleanable">295 MB</span>
+                  <span class="highlight-lbl">Güvenle Temizlenebilir</span>
+                </div>
+                <div class="highlight-item highlight-vm">
+                  <span class="highlight-val" id="vm-sleepimage-pill">2.15 GB</span>
+                  <span class="highlight-lbl">Sanal Bellek & Uyku (VM)</span>
+                </div>
+              </div>
+              <div class="sysdata-info-callout">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <p>Apple; Steam oyunlarını, Arduino & Android SDK paketlerini, Homebrew araçlarını, kapsayıcıları ve tüm önbellekleri "Sistem Verileri" başlığında toplar. Bu verilerin büyük bölümü güvenle temizlenebilir veya yönetilebilir.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DETAILED CATEGORIES ACCORDION / GRID -->
+        <h3 class="sysdata-section-title">Sistem Verileri Dağılımı ve Temizlenebilir Bileşenler</h3>
+        <div class="sysdata-categories-wrapper" id="apple-categories-container">
+          <div class="loading-state">Sistem verileri taranıyor...</div>
+        </div>
+
+        <!-- LEGACY & SPECIFIC APPLE TOOLS GRID -->
+        <h3 class="sysdata-section-title" style="margin-top: 32px;">Apple Özel Araçları (APFS Snapshotları, iOS & Simülatörler)</h3>
         <div class="apple-system-grid">
           <!-- APFS Snapshots Card -->
           <div class="glass-card apple-card">
@@ -1720,6 +1853,48 @@
           <button type="submit" class="btn btn-primary" id="btn-submit-add-login">Başlangıca Ekle</button>
         </div>
       </form>
+  <!-- System Extension Guidance & Management Dialog -->
+  <dialog id="sysext-manage-dialog" class="custom-dialog">
+    <div class="dialog-content glass-card" style="max-width: 520px;">
+      <div class="dialog-icon-wrap" style="background: rgba(14, 165, 233, 0.15); color: #0ea5e9;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      </div>
+      <h3 id="sysext-modal-title">Sistem Eklentisini Yönet</h3>
+      <p id="sysext-modal-desc" style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
+        Apple macOS güvenlik ilkeleri gereği Sürücü ve Ağ Eklentileri (DriverKit & NetworkExtension) sistem çekirdeği düzeyinde çalışır ve doğrudan Sistem Ayarları üzerinden devre dışı bırakılabilir.
+      </p>
+
+      <div class="modal-meta-box" style="margin-bottom: 18px;">
+        <div class="meta-row">
+          <span>Eklenti:</span>
+          <strong id="sysext-modal-name">--</strong>
+        </div>
+        <div class="meta-row">
+          <span>Tür:</span>
+          <strong id="sysext-modal-type">--</strong>
+        </div>
+        <div class="meta-row" id="sysext-modal-hostapp-row" style="display: none;">
+          <span>Ana Uygulama:</span>
+          <strong id="sysext-modal-hostapp" style="word-break: break-all;">--</strong>
+        </div>
+        <div class="meta-row">
+          <span>Durum:</span>
+          <strong id="sysext-modal-state">--</strong>
+        </div>
+      </div>
+
+      <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 0.82rem; color: var(--text-dim); line-height: 1.5;">
+        <strong style="color: var(--text-normal); display: block; margin-bottom: 6px;">💡 Nasıl Kapatılır / Kaldırılır?</strong>
+        1. <b>"Sistem Ayarlarını Aç"</b> butonuna tıklayın.<br/>
+        2. Açılan <b>Giriş Öğeleri ve Eklentiler</b> penceresinde <b>Ağ Eklentileri</b> veya <b>Sürücü Eklentileri</b> yanındaki <b>(i)</b> simgesine tıklayın ve anahtarı kapatın.<br/>
+        3. Eklentiyi tamamen silmek için ana uygulamasını Çöp Kutusuna taşıyabilirsiniz.
+      </div>
+
+      <div class="dialog-actions" style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
+        <button type="button" class="btn btn-secondary" id="btn-close-sysext-modal">Kapat</button>
+        <button type="button" class="btn btn-secondary" id="btn-reveal-sysext-app" style="display: none;">Ana Uygulamayı Göster</button>
+        <button type="button" class="btn btn-primary" id="btn-open-sys-settings">⚙️ Sistem Ayarlarını Aç</button>
+      </div>
     </div>
   </dialog>
 
@@ -1747,6 +1922,46 @@
       </div>
     </div>
   </dialog>
+
+  <!-- Full Disk Access (FDA) Modal -->
+  <dialog id="fda-modal" class="custom-dialog">
+    <div class="dialog-content glass-card" style="max-width: 540px;">
+      <div class="dialog-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="background:rgba(255,170,0,0.15); color:#ffa500; border-radius:10px; width:38px; height:38px; display:flex; align-items:center; justify-content:center;">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+          </div>
+          <h3 style="margin:0; font-size:1.15rem;">macOS Tam Disk Erişimi (FDA)</h3>
+        </div>
+        <button type="button" class="btn-close" id="btn-close-fda-modal">&times;</button>
+      </div>
+      <div style="margin: 16px 0; font-size: 0.9rem; line-height: 1.6; color: var(--text-normal);">
+        <p id="fda-modal-desc">macOS güvenlik politikaları gereğince <b>Safari</b>, <b>Apple Mail</b>, <b>iMessage ekleri</b>, <b>Time Machine yerel anlık görüntüleri</b> ve korumalı sistem loglarını tarayabilmek ve temizleyebilmek için uygulamanıza <b>Tam Disk Erişimi</b> izni verilmesi gerekir.</p>
+        <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px; margin-top: 12px; font-size: 0.84rem; color: var(--text-dim);">
+          <strong style="color: var(--text-normal); display: block; margin-bottom: 6px;">İzin Adımları:</strong>
+          1. Aşağıdaki <b>"Sistem Ayarlarını Aç"</b> butonuna tıklayın.<br/>
+          2. Açılan <b>Gizlilik ve Güvenlik &gt; Tam Disk Erişimi</b> listesinde terminalinizi veya <b>DiskCleaner</b>'ı etkinleştirin (+ ile ekleyebilirsiniz).<br/>
+          3. İzni verdikten sonra "Yeniden Kontrol Et" butonuna basarak tam yetkiyle taramaya başlayın.
+        </div>
+      </div>
+      <div class="dialog-actions" style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" id="btn-recheck-fda">🔄 Yeniden Kontrol Et</button>
+        <button type="button" class="btn btn-primary" id="btn-open-fda-settings">⚙️ Sistem Ayarlarını Aç</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Live Scan Progress Stream Floating Pill -->
+  <div class="live-progress-floating-pill" id="live-scan-progress-pill" style="display: none;">
+    <div class="live-progress-spinner"></div>
+    <div class="live-progress-body">
+      <span class="live-progress-label" id="live-progress-label">Taranıyor...</span>
+      <div class="live-progress-mini-bar">
+        <div class="live-progress-mini-fill" id="live-progress-fill" style="width: 0%;"></div>
+      </div>
+    </div>
+    <span class="live-progress-pct" id="live-progress-pct">0%</span>
+  </div>
 
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toast-container" aria-live="polite"></div>

@@ -101,12 +101,33 @@ func ScanNodeModules(ctx context.Context, roots []string, progressChan chan<- No
 					return filepath.SkipDir
 				}
 
+				isBuildDir := false
+				projectDir := filepath.Dir(p)
+
 				if dirName == "node_modules" {
-					// Found a node_modules!
-					projectDir := filepath.Dir(p)
+					isBuildDir = true
+				} else if dirName == "target" {
+					// Rust Cargo project build target
+					if _, err := os.Stat(filepath.Join(projectDir, "Cargo.toml")); err == nil {
+						isBuildDir = true
+					}
+				} else if dirName == "build" {
+					// Gradle, CMake, Android build directory
+					if _, err := os.Stat(filepath.Join(projectDir, "build.gradle")); err == nil {
+						isBuildDir = true
+					} else if _, err := os.Stat(filepath.Join(projectDir, "build.gradle.kts")); err == nil {
+						isBuildDir = true
+					} else if _, err := os.Stat(filepath.Join(projectDir, "CMakeLists.txt")); err == nil {
+						isBuildDir = true
+					}
+				}
+
+				if isBuildDir {
 					projectName := filepath.Base(projectDir)
 					hasPkg := false
 					if _, err := os.Stat(filepath.Join(projectDir, "package.json")); err == nil {
+						hasPkg = true
+					} else if _, err := os.Stat(filepath.Join(projectDir, "Cargo.toml")); err == nil {
 						hasPkg = true
 					}
 

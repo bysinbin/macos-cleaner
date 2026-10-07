@@ -216,6 +216,10 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("/api/apple/snapshots/delete", s.handleAppleSnapshotsDelete)
 	s.mux.HandleFunc("/api/apple/backups/delete", s.handleAppleBackupsDelete)
 	s.mux.HandleFunc("/api/apple/simulators/clean", s.handleAppleSimulatorsClean)
+	s.mux.HandleFunc("/api/apple/systemdata/clean", s.handleAppleSystemDataClean)
+	s.mux.HandleFunc("/api/apple/systemdata/clean-safe", s.handleAppleSystemDataCleanSafe)
+	s.mux.HandleFunc("/api/apple/brew/cleanup", s.handleAppleBrewCleanup)
+	s.mux.HandleFunc("/api/apple/purgeable/reclaim", s.handleApplePurgeableReclaim)
 
 	// Media & Messages Attachments
 	s.mux.HandleFunc("/api/media/attachments", s.handleMediaAttachmentsScan)
@@ -253,6 +257,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("/api/extensions", s.handleExtensionsList)
 	s.mux.HandleFunc("/api/extensions/toggle", s.handleExtensionsToggle)
 	s.mux.HandleFunc("/api/extensions/delete", s.handleExtensionsDelete)
+	s.mux.HandleFunc("/api/system/open-settings", s.handleOpenSettings)
 
 	// Network Monitor (Interfaces, Throughput, Active TCP Sockets)
 	s.mux.HandleFunc("/api/network", s.handleNetworkStats)
@@ -261,6 +266,17 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("/api/privacy", s.handlePrivacyList)
 	s.mux.HandleFunc("/api/privacy/clean", s.handlePrivacyClean)
 	s.mux.HandleFunc("/api/privacy/reset", s.handlePrivacyReset)
+
+	// Permissions & Full Disk Access
+	s.mux.HandleFunc("/api/system/permissions", s.handlePermissionsStatus)
+	s.mux.HandleFunc("/api/system/permissions/open-fda", s.handleOpenFDA)
+
+	// Docker & Containers System
+	s.mux.HandleFunc("/api/docker/status", s.handleDockerStatus)
+	s.mux.HandleFunc("/api/docker/clean", s.handleDockerClean)
+
+	// Live Scan Progress SSE Stream
+	s.mux.HandleFunc("/api/events/progress", s.handleScanProgressStream)
 
 	// Static UI assets from embedded FS
 	sub, err := fs.Sub(s.embeddedFS, "web")

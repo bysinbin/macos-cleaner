@@ -127,7 +127,15 @@ func (s *Scanner) ScanTargets(progressChan chan<- ScanProgress) (*ScanResult, er
 			knownPaths[resolved] = true
 			mapMu.Unlock()
 
-			size, count, _ := s.CalculateDirSize(resolved)
+			var size uint64
+			var count int64
+			if t.ID == "antigravity-screenshots" || isAntigravityBrainPath(resolved) {
+				size, count, _ = CalculateBrainMediaSize(resolved)
+			} else if t.ID == "vscode-obsolete-extensions" {
+				size, count, _ = CalculateVSCodeObsoleteExtensionsSize()
+			} else {
+				size, count, _ = s.CalculateDirSize(resolved)
+			}
 			t.Size = size
 			t.SizeStr = FormatBytes(size)
 			t.ItemCount = count

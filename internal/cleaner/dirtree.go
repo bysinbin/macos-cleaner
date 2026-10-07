@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 )
 
 // DirItem represents a child directory or file in the breakdown
@@ -58,6 +59,9 @@ func AnalyzeDirectory(ctx context.Context, targetPath string) (*DirBreakdown, er
 	semaphore := make(chan struct{}, 8) // Concurrent workers
 
 	var totalDirSize uint64
+	totalCount := int64(len(entries))
+	var processed int64
+	EmitProgress("dirtree", fmt.Sprintf("%s taranıyor (%d öğe)...", filepath.Base(resolved), totalCount), 0, totalCount)
 
 	for _, entry := range entries {
 		// Skip special sockets or unreadable links
@@ -67,7 +71,13 @@ func AnalyzeDirectory(ctx context.Context, targetPath string) (*DirBreakdown, er
 		go func(name, path string, isDir bool) {
 			defer wg.Done()
 			semaphore <- struct{}{}
-			defer func() { <-semaphore }()
+			defer func() {
+				<-semaphore
+				curr := atomic.AddInt64(&processed, 1)
+				if curr%2 == 0 || curr == totalCount {
+					EmitProgress("dirtree", fmt.Sprintf("%s inceleniyor...", name), curr, totalCount)
+				}
+			}()
 
 			select {
 			case <-ctx.Done():
@@ -134,6 +144,8 @@ func AnalyzeDirectory(ctx context.Context, targetPath string) (*DirBreakdown, er
 	if resolved == "/" || resolved == parent {
 		parent = ""
 	}
+
+	EmitProgress("dirtree", fmt.Sprintf("%s tamamlandı: %s", filepath.Base(resolved), FormatBytes(totalDirSize)), totalCount, totalCount)
 
 	return &DirBreakdown{
 		CurrentPath: resolved,

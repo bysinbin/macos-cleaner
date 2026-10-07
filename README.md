@@ -104,6 +104,18 @@ Go ile geliştirilmiş, macOS için modern, yüksek performanslı ve görsel dis
     - **Terminal Komut Geçmişi**: `.zsh_history`, `.bash_history`, Python ve Node REPL komut kayıtlarını görüntüleme ve tek tıkla güvenle temizleme.
     - **Tarayıcı Gizlilik Verileri**: Safari, Chrome, Arc, Brave ve Firefox yerel gezinme veritabanları ve çerez izlerini kaldırma.
     - **macOS Uygulama İzin Sıfırlayıcı (TCC)**: Kamera, Mikrofon, Ekran Kaydı, Erişilebilirlik ve Tam Disk yetkilerini tek tıkla sıfırlama (`tccutil reset`).
+25. **🐳 Docker & Konteyner Depolama Yönetimi**:
+    - **Docker Desktop Sanal Diski (`Docker.raw`)**: Diskte gigabaytlarca yer kaplayan sanal disk boyutunu (~64 GB+) ve Colima VM dizinlerini tespit etme.
+    - **Docker Prune Motoru**: Kullanılmayan tüm konteyner, dangling imaj, yetim volume ve `buildx` cache öğelerini tek tıkla güvenle budama.
+26. **🔒 macOS Tam Disk Erişimi (Full Disk Access - FDA) Güvenlik Rehberi**:
+    - Safari, Apple Mail, Mesajlar, Time Machine yerel anlık görüntüleri için TCC izin durumunu otomatik algılama ve tek tıkla Sistem Ayarları'ndan izin verme rehberi.
+27. **☀️ DaisyDisk Güneş Patlaması (Sunburst / Radial Treemap) Görsel Haritası**:
+    - Derin dizin analizinde hiyerarşik liste ile interaktif radial Sunburst haritası arasında tek tıkla geçiş.
+    - Renkli oransal dilimler, üzerine gelince detaylı boyut bilgisi ve tıklayarak klasör içine girme / üst klasöre dönme.
+28. **⚡ Canlı Tarama İlerleme Akışı (Server-Sent Events - SSE)**:
+    - Derin taramalarda, Akıllı Bakım'da ve dizin analizinde anlık taranan klasör ve yüzde sayaçlarının canlı akışı (`/api/events/progress`).
+29. **📦 macOS Universal `.app` Paketi & GitHub Actions Sürüm Dağıtımı**:
+    - Hem Apple Silicon (M1/M2/M3/M4) hem Intel işlemcili Mac'ler için universal ikili dosya ve çift tıklanarak çalışan yerel `DiskCleaner.app` paketi.
 
 ---
 
@@ -141,17 +153,41 @@ go run .
 
 # Farklı port belirleme:
 ./disk-cleaner -port 9090
+
+# Sürüm kontrolü:
+./disk-cleaner --version
 ```
 
 Çalıştırıldığında tarayıcınızda otomatik olarak **`http://127.0.0.1:8089`** adresinde açılacaktır.
 
 ---
 
-## 🛠️ Yeniden Derleme
+## 🛠️ Derleme, Test ve macOS Uygulama Paketi (`Makefile`)
 
-Tüm web arayüzü (HTML, CSS, JS) Go'nun `embed.FS` özelliği ile tek bir çalıştırılabilir ikili dosyaya (binary) gömülmüştür:
+Proje tam otomatik `Makefile` ve evrensel derleme betiği içerir:
 
 ```bash
-go build -o disk-cleaner .
+# 1. Hızlı birim testleri çalıştırma:
+make test
+
+# 2. Mevcut bilgisayarınız için derleme:
+make build
+
+# 3. macOS DiskCleaner.app Paketi ve Universal Binary (Apple Silicon + Intel):
+make app
+
+# 4. Dağıtıma hazır zip, tar.gz ve SHA256 checksum arşivleri:
+make release
+
+# 5. Derleme artıklarını temizleme:
+make clean
 ```
+
+Otomatik GitHub Actions yayını için `v2.0.0` gibi bir tag ile push yapmanız yeterlidir:
+
+```bash
+git tag -a v2.0.0 -m "Release v2.0.0: Docker, FDA, Sunburst, and Universal App"
+git push origin v2.0.0
+```
+
 

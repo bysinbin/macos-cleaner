@@ -2,6 +2,7 @@ package cleaner
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -72,6 +73,8 @@ func ScanSmartCare(ctx context.Context) (*SmartCareResult, error) {
 
 	var totalCleanable uint64
 	var totalFiles int64
+
+	EmitProgress("smartcare", "Akıllı Bakım: Sistem, önbellek ve çöp taraması başlatılıyor...", 1, 6)
 
 	// 1. User Caches
 	wg.Add(1)
@@ -191,12 +194,37 @@ func ScanSmartCare(ctx context.Context) (*SmartCareResult, error) {
 		}
 	}()
 
+	// 6. Antigravity Ajan & Tarayıcı Kayıtları
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		agSz, agCnt, err := ScanAntigravityDebris(ctx)
+		if err == nil && agSz > 0 {
+			it := SmartCareItem{
+				ID:          "antigravity_debris",
+				Title:       "Antigravity Ajan & Tarayıcı Kayıtları",
+				Description: "Ajan oturumlarında kaydedilen ekran görüntüleri, tarayıcı videoları ve geçici dosyalar.",
+				Size:        agSz,
+				SizeStr:     FormatBytes(agSz),
+				FileCount:   agCnt,
+				Selected:    true,
+			}
+			mu.Lock()
+			items = append(items, it)
+			atomic.AddUint64(&totalCleanable, agSz)
+			atomic.AddInt64(&totalFiles, agCnt)
+			mu.Unlock()
+		}
+	}()
+
 	wg.Wait()
 
 	result.Items = items
 	result.TotalCleanable = totalCleanable
 	result.TotalCleanableStr = FormatBytes(totalCleanable)
 	result.TotalFiles = totalFiles
+
+	EmitProgress("smartcare", fmt.Sprintf("Akıllı Bakım taraması tamamlandı: %s alan kazanılabilir.", result.TotalCleanableStr), 6, 6)
 
 	return result, nil
 }
@@ -299,6 +327,13 @@ func ExecuteSmartCareClean(selectedIDs []string) (uint64, int64, error) {
 	// 5. Leftover Debris (.DS_Store)
 	if len(idMap) == 0 || idMap["leftovers_debris"] {
 		sz, cnt, _ := CleanDSStoreBatch()
+		freedBytes += sz
+		deletedFiles += cnt
+	}
+
+	// 6. Antigravity Debris (Screenshots, Browser recordings, Temp media)
+	if len(idMap) == 0 || idMap["antigravity_debris"] {
+		sz, cnt, _ := CleanAntigravityDebris()
 		freedBytes += sz
 		deletedFiles += cnt
 	}

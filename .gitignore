@@ -17,3 +17,6 @@ disk-cleaner
 .vscode/
 *.swp
 *~
+
+# Build artifacts
+build/

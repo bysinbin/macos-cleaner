@@ -29,6 +29,8 @@ type ExtensionItem struct {
 	Type        ExtensionType `json:"type"`
 	TypeName    string        `json:"typeName"`
 	Path        string        `json:"path"`
+	HostAppPath string        `json:"hostAppPath,omitempty"`
+	IsOrphaned  bool          `json:"isOrphaned"`
 	Version     string        `json:"version"`
 	TeamID      string        `json:"teamId"`
 	Enabled     bool          `json:"enabled"`
@@ -153,9 +155,6 @@ func scanSystemExtensionsCtl(ctx context.Context) []ExtensionItem {
 			state = strings.TrimSpace(parts[5])
 		}
 
-		enabled := enabledMark == "*" || strings.Contains(state, "enabled")
-		active := activeMark == "*" || strings.Contains(state, "activated")
-
 		bundleID := bundleVer
 		version := ""
 		if idx := strings.Index(bundleVer, " ("); idx != -1 {
@@ -163,8 +162,34 @@ func scanSystemExtensionsCtl(ctx context.Context) []ExtensionItem {
 			version = strings.TrimSuffix(strings.TrimSpace(bundleVer[idx+2:]), ")")
 		}
 
+		// State parsing:
+		// [activated enabled] -> enabled: true, active: true
+		// [activated disabled] -> enabled: false, active: false
+		// [terminated waiting to uninstall on reboot] -> enabled: false, active: false
+		enabled := (enabledMark == "*" || strings.Contains(state, "enabled")) && !strings.Contains(state, "disabled") && !strings.Contains(state, "terminated")
+		active := (activeMark == "*" || strings.Contains(state, "activated")) && !strings.Contains(state, "disabled") && !strings.Contains(state, "terminated")
+
+		// Locate bundle on disk under /Library/SystemExtensions
+		extPath := ""
+		matches, _ := filepath.Glob(filepath.Join("/Library/SystemExtensions", "*", bundleID+".*"))
+		if len(matches) > 0 {
+			extPath = matches[0]
+		}
+
+		// Locate host app
+		hostApp := findHostAppByBundleID(bundleID)
+		isOrphaned := hostApp == ""
+
 		vendor := inferVendorFromBundleID(bundleID, name)
+
 		desc := fmt.Sprintf("%s — Durum: %s", category, state)
+		if strings.Contains(state, "terminated") {
+			desc = fmt.Sprintf("%s — Kaldırıldı (Yeniden başlatma bekleniyor)", category)
+		} else if strings.Contains(state, "disabled") {
+			desc = fmt.Sprintf("%s — Durum: Devre Dışı", category)
+		} else if strings.Contains(state, "enabled") {
+			desc = fmt.Sprintf("%s — Durum: Etkin / Kullanımda", category)
+		}
 
 		items = append(items, ExtensionItem{
 			ID:          "sysext:" + bundleID,
@@ -172,7 +197,9 @@ func scanSystemExtensionsCtl(ctx context.Context) []ExtensionItem {
 			BundleID:    bundleID,
 			Type:        ExtTypeSystem,
 			TypeName:    category,
-			Path:        "",
+			Path:        extPath,
+			HostAppPath: hostApp,
+			IsOrphaned:  isOrphaned,
 			Version:     version,
 			TeamID:      teamID,
 			Enabled:     enabled,
@@ -185,6 +212,20 @@ func scanSystemExtensionsCtl(ctx context.Context) []ExtensionItem {
 	}
 
 	return items
+}
+
+// findHostAppByBundleID finds the host .app bundle for a system extension
+func findHostAppByBundleID(bundleID string) string {
+	out, err := exec.Command("mdfind", fmt.Sprintf("kMDItemCFBundleIdentifier == '%s' && kMDItemContentType == 'com.apple.application-bundle'", bundleID)).Output()
+	if err == nil {
+		for _, line := range strings.Split(string(out), "\n") {
+			line = strings.TrimSpace(line)
+			if strings.HasSuffix(line, ".app") {
+				return line
+			}
+		}
+	}
+	return ""
 }
 
 // scanPluginKitExtensions queries `pluginkit -m -A -v` and filters 3rd party plugins
@@ -369,8 +410,15 @@ func ToggleExtension(id string, enable bool) error {
 		return nil
 
 	case "sysext":
-		// System extensions are managed by macOS Settings
-		return fmt.Errorf("sistem sürücü eklentileri Apple güvenlik ilkeleri gereği macOS Sistem Ayarları > Gizlilik ve Güvenlik > Eklentiler bölümünden yönetilmelidir")
+		// target is bundleID
+		// 1. If disabling, run systemextensionsctl gc to clean any orphaned/terminated extensions
+		if !enable {
+			_ = exec.Command("systemextensionsctl", "gc").Run()
+		}
+
+		// 2. Open macOS System Settings directly to Login Items & Extensions panel
+		_ = exec.Command("open", "x-apple.systempreferences:com.apple.LoginItems-Settings.extension").Run()
+		return nil
 
 	default:
 		return fmt.Errorf("bilinmeyen eklenti türü: %s", extType)
@@ -379,6 +427,21 @@ func ToggleExtension(id string, enable bool) error {
 
 // DeleteExtension removes an extension or moves it to trash
 func DeleteExtension(id string, path string) error {
+	parts := strings.SplitN(id, ":", 2)
+	if len(parts) == 2 && parts[0] == "sysext" {
+		bundleID := parts[1]
+		// 1. If host app exists, move it to Trash (which signals sysextd to remove the extension)
+		hostApp := findHostAppByBundleID(bundleID)
+		if hostApp != "" {
+			trashScript := fmt.Sprintf(`tell application "Finder" to delete POSIX file "%s"`, hostApp)
+			_ = exec.Command("osascript", "-e", trashScript).Run()
+		}
+		// 2. Run gc to collect orphaned system extension
+		_ = exec.Command("systemextensionsctl", "gc").Run()
+		// 3. Open settings for user review
+		_ = exec.Command("open", "x-apple.systempreferences:com.apple.LoginItems-Settings.extension").Run()
+		return nil
+	}
 	if path == "" {
 		parts := strings.SplitN(id, ":", 2)
 		if len(parts) == 2 && strings.HasPrefix(parts[1], "/") {

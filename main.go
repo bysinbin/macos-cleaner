@@ -10,6 +10,7 @@ import (
 
 	"disk-cleaner/internal/config"
 	"disk-cleaner/internal/server"
+	"disk-cleaner/internal/version"
 )
 
 //go:embed web/* web/css/* web/js/*
@@ -24,7 +25,13 @@ func main() {
 
 	port := flag.Int("port", defaultPort, "HTTP sunucu portu")
 	noBrowser := flag.Bool("no-browser", false, "Tarayıcıyı otomatik açma")
+	showVersion := flag.Bool("version", false, "Sürüm bilgisini göster")
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Printf("DiskCleaner Pro %s (%s, %s)\n", version.Version, version.GitCommit, version.BuildDate)
+		os.Exit(0)
+	}
 
 	if cfg != nil && *port != defaultPort {
 		cfg.Port = *port
@@ -32,7 +39,7 @@ func main() {
 	}
 
 	fmt.Println("==================================================")
-	fmt.Println(" 🍏 DiskCleaner Pro — macOS Disk & Geliştirici Temizleyici")
+	fmt.Printf(" 🍏 DiskCleaner Pro %s — macOS Disk & Geliştirici Temizleyici\n", version.Version)
 	fmt.Println("==================================================")
 
 	srv := server.NewServer(*port, embeddedWeb)
