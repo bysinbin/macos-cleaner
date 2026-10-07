@@ -31,6 +31,11 @@ chmod +x "$APP_DIR/Contents/MacOS/DiskCleaner"
 # Also copy universal binary to build directory root
 cp "$APP_DIR/Contents/MacOS/DiskCleaner" "$BUILD_DIR/disk-cleaner"
 
+if [ -f "$ROOT_DIR/assets/AppIcon.icns" ]; then
+    echo "-> Installing macOS AppIcon.icns..."
+    cp "$ROOT_DIR/assets/AppIcon.icns" "$APP_DIR/Contents/Resources/AppIcon.icns"
+fi
+
 echo "-> Generating Info.plist..."
 cat << 'EOF' > "$APP_DIR/Contents/Info.plist"
 <?xml version="1.0" encoding="UTF-8"?>
@@ -45,6 +50,8 @@ cat << 'EOF' > "$APP_DIR/Contents/Info.plist"
     <string>DiskCleaner Pro</string>
     <key>CFBundleDisplayName</key>
     <string>DiskCleaner Pro</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>

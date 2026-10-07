@@ -26,8 +26,23 @@ type Config struct {
 var (
 	currentConfig *Config
 	configMutex   sync.RWMutex
-	configFile    = "config.json"
 )
+
+// getConfigPath determines where config.json is stored
+func getConfigPath() string {
+	// 1. If config.json exists in current working dir, use it
+	if _, err := os.Stat("config.json"); err == nil {
+		return "config.json"
+	}
+	// 2. Otherwise use user's ~/.config/disk-cleaner/config.json (when run as macOS .app)
+	home, err := os.UserHomeDir()
+	if err == nil {
+		dir := filepath.Join(home, ".config", "disk-cleaner")
+		_ = os.MkdirAll(dir, 0755)
+		return filepath.Join(dir, "config.json")
+	}
+	return "config.json"
+}
 
 // LoadConfig loads the configuration from disk, creating default if not found
 func LoadConfig() (*Config, error) {
@@ -42,6 +57,8 @@ func LoadConfig() (*Config, error) {
 			Password: "admin", // default password, user can change in config.json
 		},
 	}
+
+	configFile := getConfigPath()
 
 	if _, err := os.Stat(configFile); os.IsNotExist(err) {
 		// Generate random session secret
@@ -96,6 +113,7 @@ func GetConfig() *Config {
 
 // SaveConfig saves configuration to file
 func SaveConfig(cfg *Config) error {
+	configFile := getConfigPath()
 	data, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
 		return err
