@@ -64,7 +64,7 @@ static DiskCleanerAppDelegate *globalDelegate = nil;
     self.webView = [[WKWebView alloc] initWithFrame:self.window.contentView.bounds configuration:config];
     self.webView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     self.webView.navigationDelegate = self;
-    [self.window.contentView addSubview:self.webView];
+    self.window.contentView = self.webView;
 
     // Load local server URL
     NSURL *targetURL = [NSURL URLWithString:self.serverURL];
@@ -111,6 +111,7 @@ static DiskCleanerAppDelegate *globalDelegate = nil;
 
     // Show window and bring app to foreground
     [self.window makeKeyAndOrderFront:nil];
+    [self.window makeFirstResponder:self.webView];
     [NSApp activateIgnoringOtherApps:YES];
 }
 
@@ -122,6 +123,7 @@ static DiskCleanerAppDelegate *globalDelegate = nil;
 
 - (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag {
     [self.window makeKeyAndOrderFront:nil];
+    [self.window makeFirstResponder:self.webView];
     [NSApp activateIgnoringOtherApps:YES];
     return YES;
 }
@@ -141,6 +143,7 @@ static DiskCleanerAppDelegate *globalDelegate = nil;
 
 - (void)actionOpenWindow:(id)sender {
     [self.window makeKeyAndOrderFront:nil];
+    [self.window makeFirstResponder:self.webView];
     [NSApp activateIgnoringOtherApps:YES];
     goOpenAppWindow();
 }
@@ -164,6 +167,7 @@ static DiskCleanerAppDelegate *globalDelegate = nil;
 - (void)showAppWindow {
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.window makeKeyAndOrderFront:nil];
+        [self.window makeFirstResponder:self.webView];
         [NSApp activateIgnoringOtherApps:YES];
     });
 }

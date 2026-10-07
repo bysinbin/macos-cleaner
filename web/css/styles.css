@@ -1164,6 +1164,16 @@ body {
   margin: auto;
   max-width: 480px;
   width: 90%;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  color: var(--text-main);
+}
+
+.custom-dialog[open] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .custom-dialog::backdrop {

@@ -53,8 +53,8 @@ func LoadConfig() (*Config, error) {
 		Port:        8089,
 		BindAddress: "127.0.0.1",
 		Auth: AuthConfig{
-			Enabled:  true,
-			Password: "admin", // default password, user can change in config.json
+			Enabled:  false, // Desktop app on localhost does not require password by default
+			Password: "admin", // fallback password if user manually enables auth
 		},
 	}
 
