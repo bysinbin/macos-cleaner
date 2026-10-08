@@ -1156,36 +1156,77 @@ body {
   opacity: 0.5;
 }
 
-/* Native Dialog Modal */
-.custom-dialog {
-  border: none;
-  background: transparent;
-  padding: 0;
-  margin: auto;
-  max-width: 480px;
-  width: 90%;
-  position: fixed;
-  inset: 0;
-  z-index: 10000;
-  color: var(--text-main);
+/* Native Dialog Modal - Solid Universal Styling */
+dialog.custom-dialog {
+  position: fixed !important;
+  inset: 0 !important;
+  margin: auto !important;
+  transform: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 20px !important;
+  background: #0d1322 !important;
+  color: #f8fafc !important;
+  padding: 0 !important;
+  width: 90vw !important;
+  max-width: 540px !important;
+  height: fit-content !important;
+  max-height: 90vh !important;
+  box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+  z-index: 999999 !important;
+  overflow: hidden !important;
 }
 
-.custom-dialog[open] {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+dialog.custom-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.75) !important;
 }
 
-.custom-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+dialog.custom-dialog:not([open]) {
+  display: none !important;
 }
 
-.dialog-content {
-  padding: 32px;
-  text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+dialog.custom-dialog[open] {
+  display: block !important;
+}
+
+.custom-dialog .dialog-content {
+  background: #0d1322 !important;
+  padding: 26px 28px !important;
+  text-align: left !important;
+  border: none !important;
+  border-radius: 20px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.custom-dialog .dialog-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 16px !important;
+  padding-bottom: 12px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.custom-dialog .btn-close {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #94a3b8 !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  font-size: 1.3rem !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.15s ease !important;
+  line-height: 1 !important;
+}
+
+.custom-dialog .btn-close:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #ef4444 !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
 }
 
 .dialog-icon-wrap {

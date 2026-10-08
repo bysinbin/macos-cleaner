@@ -4614,7 +4614,9 @@ function initFDA() {
   const btnRecheck = document.getElementById('btn-recheck-fda');
 
   if (btnBadge && modal) {
-    btnBadge.addEventListener('click', () => {
+    btnBadge.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       const desc = document.getElementById('fda-modal-desc');
       if (desc && fdaStatusData) {
         if (fdaStatusData.hasFullDiskAccess) {
@@ -4623,21 +4625,33 @@ function initFDA() {
           desc.innerHTML = 'macOS güvenlik politikaları gereğince <b>Safari</b>, <b>Apple Mail</b>, <b>iMessage ekleri</b>, <b>Time Machine yerel anlık görüntüleri</b> ve korumalı sistem loglarını eksiksiz tarayabilmek ve temizleyebilmek için uygulamanıza <b>Tam Disk Erişimi</b> izni verilmesi gerekir.';
         }
       }
-      modal.showModal();
+      try {
+        if (!modal.open) {
+          modal.showModal();
+        }
+      } catch (err) {
+        console.error('Modal acilamadi:', err);
+      }
     });
   }
 
   if (btnClose && modal) {
-    btnClose.addEventListener('click', () => modal.close());
+    btnClose.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      modal.close();
+    });
     modal.addEventListener('click', (e) => {
-      const rect = modal.getBoundingClientRect();
-      const inBox = (rect.top <= e.clientY && e.clientY <= rect.top + rect.height && rect.left <= e.clientX && e.clientX <= rect.left + rect.width);
-      if (!inBox) modal.close();
+      if (e.target === modal) {
+        modal.close();
+      }
     });
   }
 
   if (btnOpenSettings) {
-    btnOpenSettings.addEventListener('click', async () => {
+    btnOpenSettings.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       try {
         await fetch('/api/system/permissions/open-fda', { method: 'POST' });
         showToast('macOS Sistem Ayarları - Tam Disk Erişimi açıldı.', 'info');
@@ -4648,7 +4662,9 @@ function initFDA() {
   }
 
   if (btnRecheck) {
-    btnRecheck.addEventListener('click', async () => {
+    btnRecheck.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       btnRecheck.disabled = true;
       btnRecheck.textContent = 'Kontrol ediliyor...';
       await checkFDAPermissions();
@@ -4657,6 +4673,7 @@ function initFDA() {
 
       if (fdaStatusData && fdaStatusData.hasFullDiskAccess) {
         showToast('Harika! Tam Disk Erişimi başarıyla doğrulandı.', 'success');
+        modal.close();
       } else {
         showToast('Tam Disk Erişimi henüz algılanmadı. Lütfen Sistem Ayarları listesinden izin verip tekrar deneyin.', 'warning');
       }

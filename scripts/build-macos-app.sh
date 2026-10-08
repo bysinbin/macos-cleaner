@@ -84,6 +84,15 @@ echo "-> Signing macOS App bundle with ad-hoc signature for TCC / Full Disk Acce
 xattr -cr "$APP_DIR"
 codesign --force --deep --sign - "$APP_DIR"
 
+if [ -d "/Applications" ]; then
+    echo "-> Installing to /Applications/DiskCleaner.app..."
+    rm -rf "/Applications/DiskCleaner.app"
+    cp -R "$APP_DIR" "/Applications/DiskCleaner.app"
+    xattr -cr "/Applications/DiskCleaner.app"
+    codesign --force --deep --sign - "/Applications/DiskCleaner.app"
+    echo "-> /Applications/DiskCleaner.app successfully updated and signed."
+fi
+
 echo "-> Packaging distribution archives..."
 cd "$BUILD_DIR"
 zip -r -q "DiskCleaner-${VERSION}-macos-app.zip" "DiskCleaner.app"
@@ -99,3 +108,4 @@ echo " ✅ Release build completed successfully!"
 echo " Output files in: $BUILD_DIR"
 ls -lh "$BUILD_DIR"
 echo "=================================================="
+

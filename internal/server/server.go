@@ -125,11 +125,11 @@ func (s *Server) securityMiddleware(next http.Handler) http.Handler {
 		// 2. Auth protection check
 		cfg := config.GetConfig()
 		if cfg.Auth.Enabled {
-			// Allow auth endpoints and static web assets without auth
-			isAuthEndpoint := strings.HasPrefix(r.URL.Path, "/api/auth/")
+			// Allow auth endpoints, system permission endpoints, and static web assets without auth
+			isPublicEndpoint := strings.HasPrefix(r.URL.Path, "/api/auth/") || strings.HasPrefix(r.URL.Path, "/api/system/permissions")
 			isAPIEndpoint := strings.HasPrefix(r.URL.Path, "/api/")
 
-			if isAPIEndpoint && !isAuthEndpoint {
+			if isAPIEndpoint && !isPublicEndpoint {
 				if !s.isAuthenticated(r) {
 					writeJSON(w, http.StatusUnauthorized, map[string]any{
 						"error":        "Yetkilendirme gerekli. Lütfen şifrenizi girin.",
