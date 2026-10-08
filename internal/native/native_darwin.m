@@ -55,6 +55,8 @@ static DiskCleanerAppDelegate *globalDelegate = nil;
     self.window.titleVisibility = NSWindowTitleHidden;
     self.window.titlebarAppearsTransparent = YES;
     self.window.backgroundColor = [NSColor colorWithSRGBRed:0.06 green:0.09 blue:0.16 alpha:1.0];
+    [self.window setMovableByWindowBackground:YES];
+    [self.window setMovable:YES];
     [self.window setDelegate:self];
 
     // 2. Create and configure WKWebView

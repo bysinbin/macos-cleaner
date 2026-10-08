@@ -1928,16 +1928,16 @@
     <div class="dialog-content glass-card" style="max-width: 540px;">
       <div class="dialog-header">
         <div style="display:flex; align-items:center; gap:10px;">
-          <div style="background:rgba(255,170,0,0.15); color:#ffa500; border-radius:10px; width:38px; height:38px; display:flex; align-items:center; justify-content:center;">
+          <div id="fda-modal-icon-wrap" style="background:rgba(255,170,0,0.15); color:#ffa500; border-radius:10px; width:38px; height:38px; display:flex; align-items:center; justify-content:center;">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
           </div>
-          <h3 style="margin:0; font-size:1.15rem;">macOS Tam Disk Erişimi (FDA)</h3>
+          <h3 id="fda-modal-title" style="margin:0; font-size:1.15rem;">macOS Tam Disk Erişimi (FDA)</h3>
         </div>
-        <button type="button" class="btn-close" id="btn-close-fda-modal">&times;</button>
+        <button type="button" class="btn-close" id="btn-close-fda-modal" aria-label="Kapat">&times;</button>
       </div>
       <div style="margin: 16px 0; font-size: 0.9rem; line-height: 1.6; color: var(--text-normal);">
         <p id="fda-modal-desc">macOS güvenlik politikaları gereğince <b>Safari</b>, <b>Apple Mail</b>, <b>iMessage ekleri</b>, <b>Time Machine yerel anlık görüntüleri</b> ve korumalı sistem loglarını tarayabilmek ve temizleyebilmek için uygulamanıza <b>Tam Disk Erişimi</b> izni verilmesi gerekir.</p>
-        <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px; margin-top: 12px; font-size: 0.84rem; color: var(--text-dim);">
+        <div id="fda-modal-steps" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px; margin-top: 12px; font-size: 0.84rem; color: var(--text-dim);">
           <strong style="color: var(--text-normal); display: block; margin-bottom: 6px;">İzin Adımları:</strong>
           1. Aşağıdaki <b>"Sistem Ayarlarını Aç"</b> butonuna tıklayın.<br/>
           2. Açılan <b>Gizlilik ve Güvenlik &gt; Tam Disk Erişimi</b> listesinde terminalinizi veya <b>DiskCleaner</b>'ı etkinleştirin (+ ile ekleyebilirsiniz).<br/>
@@ -1945,6 +1945,7 @@
         </div>
       </div>
       <div class="dialog-actions" style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" id="btn-close-fda-modal-footer">Kapat</button>
         <button type="button" class="btn btn-secondary" id="btn-recheck-fda">🔄 Yeniden Kontrol Et</button>
         <button type="button" class="btn btn-primary" id="btn-open-fda-settings">⚙️ Sistem Ayarlarını Aç</button>
       </div>

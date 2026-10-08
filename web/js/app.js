@@ -4529,11 +4529,10 @@ function setupEventHandlers() {
 
   // Light dismiss modal on backdrop click
   elements.confirmModal.addEventListener('click', (e) => {
-    const rect = elements.confirmModal.getBoundingClientRect();
-    const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.top + rect.height
-      && rect.left <= e.clientX && e.clientX <= rect.left + rect.width);
-    if (!isInDialog) {
+    const content = elements.confirmModal.querySelector('.dialog-content');
+    if (!content || !content.contains(e.target)) {
       elements.confirmModal.close();
+      pendingCleanAction = null;
     }
   });
 }
@@ -4610,41 +4609,116 @@ function initFDA() {
   const btnBadge = document.getElementById('btn-fda-badge');
   const modal = document.getElementById('fda-modal');
   const btnClose = document.getElementById('btn-close-fda-modal');
+  const btnCloseFooter = document.getElementById('btn-close-fda-modal-footer');
   const btnOpenSettings = document.getElementById('btn-open-fda-settings');
   const btnRecheck = document.getElementById('btn-recheck-fda');
+  const title = document.getElementById('fda-modal-title');
+  const iconWrap = document.getElementById('fda-modal-icon-wrap');
+  const desc = document.getElementById('fda-modal-desc');
+  const stepsBox = document.getElementById('fda-modal-steps');
+
+  function updateModalView() {
+    if (!fdaStatusData) return;
+    if (fdaStatusData.hasFullDiskAccess) {
+      if (title) title.textContent = 'Tam Disk Erişimi (FDA) — Aktif';
+      if (iconWrap) {
+        iconWrap.style.background = 'rgba(16, 185, 129, 0.18)';
+        iconWrap.style.color = '#10b981';
+      }
+      if (desc) {
+        desc.innerHTML = '<div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:10px; padding:14px; margin-bottom:12px;">' +
+          '<div style="font-weight:700; color:#10b981; font-size:1.02rem; margin-bottom:6px;">🛡️ Tam Disk Erişimi Doğrulandı ve Etkin!</div>' +
+          '<p style="margin:0; font-size:0.88rem; color:var(--text-normal); line-height:1.5;">' +
+          'Uygulama; <b>Safari</b>, <b>Apple Mail</b>, <b>iMessage ekleri</b>, <b>Time Machine yerel anlık görüntüleri</b> ve korumalı sistem loglarını engelsiz olarak tarayabilir ve temizleyebilir.' +
+          '</p></div>';
+      }
+      if (stepsBox) {
+        stepsBox.style.display = 'none';
+      }
+      if (btnCloseFooter) {
+        btnCloseFooter.className = 'btn btn-primary';
+        btnCloseFooter.textContent = '✓ Tamam (Kapat)';
+      }
+      if (btnOpenSettings) {
+        btnOpenSettings.style.display = 'none';
+      }
+    } else {
+      if (title) title.textContent = 'macOS Tam Disk Erişimi (FDA)';
+      if (iconWrap) {
+        iconWrap.style.background = 'rgba(255, 170, 0, 0.15)';
+        iconWrap.style.color = '#ffa500';
+      }
+      if (desc) {
+        desc.innerHTML = 'macOS güvenlik politikaları gereğince <b>Safari</b>, <b>Apple Mail</b>, <b>iMessage ekleri</b>, <b>Time Machine yerel anlık görüntüleri</b> ve korumalı sistem loglarını eksiksiz tarayabilmek ve temizleyebilmek için uygulamanıza <b>Tam Disk Erişimi</b> izni verilmesi gerekir.';
+      }
+      if (stepsBox) {
+        stepsBox.style.display = 'block';
+      }
+      if (btnCloseFooter) {
+        btnCloseFooter.className = 'btn btn-secondary';
+        btnCloseFooter.textContent = 'Vazgeç';
+      }
+      if (btnOpenSettings) {
+        btnOpenSettings.style.display = 'inline-flex';
+      }
+    }
+  }
+
+  function closeModal() {
+    try {
+      if (modal && modal.open) {
+        modal.close();
+      }
+    } catch (e) {
+      if (modal) modal.removeAttribute('open');
+    }
+  }
+
+  function openModal() {
+    updateModalView();
+    try {
+      if (modal && !modal.open) {
+        modal.showModal();
+      }
+    } catch (e) {
+      if (modal) modal.setAttribute('open', '');
+    }
+  }
 
   if (btnBadge && modal) {
     btnBadge.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const desc = document.getElementById('fda-modal-desc');
-      if (desc && fdaStatusData) {
-        if (fdaStatusData.hasFullDiskAccess) {
-          desc.innerHTML = '✅ <b>Tam Disk Erişimi (FDA) etkinleştirildi!</b> Uygulama Safari, Mail, Mesajlar ve Time Machine dizinlerini koruma engeline takılmadan tarayabilir.';
-        } else {
-          desc.innerHTML = 'macOS güvenlik politikaları gereğince <b>Safari</b>, <b>Apple Mail</b>, <b>iMessage ekleri</b>, <b>Time Machine yerel anlık görüntüleri</b> ve korumalı sistem loglarını eksiksiz tarayabilmek ve temizleyebilmek için uygulamanıza <b>Tam Disk Erişimi</b> izni verilmesi gerekir.';
-        }
-      }
-      try {
-        if (!modal.open) {
-          modal.showModal();
-        }
-      } catch (err) {
-        console.error('Modal acilamadi:', err);
-      }
+      openModal();
     });
   }
 
-  if (btnClose && modal) {
+  if (btnClose) {
     btnClose.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      modal.close();
+      closeModal();
     });
+  }
+
+  if (btnCloseFooter) {
+    btnCloseFooter.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeModal();
+    });
+  }
+
+  if (modal) {
     modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        modal.close();
+      const content = modal.querySelector('.dialog-content');
+      if (!content || !content.contains(e.target)) {
+        closeModal();
       }
+    });
+
+    modal.addEventListener('cancel', () => {
+      closeModal();
     });
   }
 
@@ -4673,7 +4747,7 @@ function initFDA() {
 
       if (fdaStatusData && fdaStatusData.hasFullDiskAccess) {
         showToast('Harika! Tam Disk Erişimi başarıyla doğrulandı.', 'success');
-        modal.close();
+        updateModalView();
       } else {
         showToast('Tam Disk Erişimi henüz algılanmadı. Lütfen Sistem Ayarları listesinden izin verip tekrar deneyin.', 'warning');
       }
