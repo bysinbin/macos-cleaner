@@ -464,6 +464,7 @@ function initializeDashboardData() {
 
 // Initialize Application
 document.addEventListener('DOMContentLoaded', async () => {
+  initDialogPolyfills();
   setupNavigation();
   setupEventHandlers();
   initFDA();
@@ -474,6 +475,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializeDashboardData();
   }
 });
+
+function initDialogPolyfills() {
+  document.querySelectorAll('dialog.custom-dialog').forEach(dlg => {
+    const origShow = dlg.showModal ? dlg.showModal.bind(dlg) : null;
+    dlg.showModal = function() {
+      this.classList.add('modal-visible');
+      this.style.display = 'flex';
+      this.setAttribute('open', '');
+      try { if (origShow) origShow(); } catch (e) {}
+    };
+    dlg.close = function() {
+      this.classList.remove('modal-visible');
+      this.style.display = 'none';
+      this.removeAttribute('open');
+    };
+  });
+}
 
 // Setup Tab Navigation
 function setupNavigation() {
@@ -4665,25 +4683,23 @@ function initFDA() {
   }
 
   function closeModal() {
-    try {
-      if (modal && modal.open) {
-        modal.close();
-      }
-    } catch (e) {
-      if (modal) modal.removeAttribute('open');
-    }
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+    modal.removeAttribute('open');
   }
 
   function openModal() {
+    if (!modal) return;
     updateModalView();
-    try {
-      if (modal && !modal.open) {
-        modal.showModal();
-      }
-    } catch (e) {
-      if (modal) modal.setAttribute('open', '');
-    }
+    modal.classList.add('active');
+    modal.style.display = 'flex';
+    modal.setAttribute('open', '');
   }
+
+  // Backward compatibility for showModal/close
+  modal.showModal = openModal;
+  modal.close = closeModal;
 
   if (btnBadge && modal) {
     btnBadge.addEventListener('click', (e) => {
@@ -4717,8 +4733,10 @@ function initFDA() {
       }
     });
 
-    modal.addEventListener('cancel', () => {
-      closeModal();
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.style.display === 'flex') {
+        closeModal();
+      }
     });
   }
 

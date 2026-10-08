@@ -237,30 +237,27 @@ body {
 /* Main Content Area */
 .main-content {
   flex: 1;
-  padding: 32px 40px;
+  padding: 0 40px 32px 40px;
   overflow-y: auto;
   max-width: 1400px;
 }
 
-/* Top Bar */
+/* Top Bar - Sticky pinned to top of main content */
 .top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 28px;
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background: rgba(11, 15, 25, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 24px 0 16px 0;
+  margin-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   flex-wrap: wrap;
   gap: 16px;
-  -webkit-app-region: drag;
-  user-select: none;
-}
-
-.top-bar button,
-.top-bar input,
-.top-bar label,
-.top-bar a,
-.top-actions,
-.toggle-control {
-  -webkit-app-region: no-drag;
 }
 
 .top-title h1 {
@@ -1169,8 +1166,9 @@ body {
   opacity: 0.5;
 }
 
-/* Native Dialog Modal - Solid Universal Styling */
-/* Native Dialog Modal - Solid Universal Styling */
+/* Universal Modal & Dialog Overlay Styling */
+.custom-modal-overlay,
+.custom-dialog,
 dialog.custom-dialog {
   position: fixed !important;
   inset: 0 !important;
@@ -1181,42 +1179,48 @@ dialog.custom-dialog {
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;
-  background: rgba(0, 0, 0, 0.75) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
+  background: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
   z-index: 999999 !important;
-  display: none !important;
+  display: none;
   align-items: center !important;
   justify-content: center !important;
   box-sizing: border-box !important;
-  -webkit-app-region: no-drag !important;
 }
 
 dialog.custom-dialog::backdrop {
-  background: transparent !important;
+  background: rgba(0, 0, 0, 0.8) !important;
 }
 
-dialog.custom-dialog:not([open]) {
-  display: none !important;
-}
-
+.custom-modal-overlay.active,
+.custom-dialog.modal-visible,
+dialog.custom-dialog.modal-visible,
 dialog.custom-dialog[open] {
   display: flex !important;
 }
 
-.custom-dialog .dialog-content {
+.custom-dialog:not([open]):not(.modal-visible),
+dialog.custom-dialog:not([open]):not(.modal-visible) {
+  display: none !important;
+}
+
+.custom-dialog .dialog-content,
+.custom-modal-overlay .dialog-content {
   background: #0d1322 !important;
-  padding: 26px 28px !important;
+  padding: 28px !important;
   text-align: left !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
   border-radius: 20px !important;
   width: 90vw !important;
   max-width: 540px !important;
   max-height: 90vh !important;
   overflow-y: auto !important;
-  box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 30px 70px -10px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.12) !important;
   box-sizing: border-box !important;
   position: relative !important;
+  z-index: 1000000 !important;
+  pointer-events: auto !important;
 }
 
 .custom-dialog .dialog-header {

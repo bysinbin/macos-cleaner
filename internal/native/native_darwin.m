@@ -43,8 +43,7 @@ static DiskCleanerAppDelegate *globalDelegate = nil;
     NSUInteger style = NSWindowStyleMaskTitled |
                        NSWindowStyleMaskClosable |
                        NSWindowStyleMaskMiniaturizable |
-                       NSWindowStyleMaskResizable |
-                       NSWindowStyleMaskFullSizeContentView;
+                       NSWindowStyleMaskResizable;
 
     self.window = [[NSWindow alloc] initWithContentRect:frame
                                               styleMask:style
@@ -52,10 +51,10 @@ static DiskCleanerAppDelegate *globalDelegate = nil;
                                                   defer:NO];
 
     self.window.title = self.appTitle;
-    self.window.titleVisibility = NSWindowTitleHidden;
-    self.window.titlebarAppearsTransparent = YES;
+    self.window.titleVisibility = NSWindowTitleVisible;
+    self.window.titlebarAppearsTransparent = NO;
+    self.window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameDarkAqua];
     self.window.backgroundColor = [NSColor colorWithSRGBRed:0.06 green:0.09 blue:0.16 alpha:1.0];
-    [self.window setMovableByWindowBackground:YES];
     [self.window setMovable:YES];
     [self.window setDelegate:self];
 
